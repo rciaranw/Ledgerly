@@ -6,121 +6,107 @@ struct HomeView: View {
     @EnvironmentObject var budgetVM: BudgetViewModel
     @EnvironmentObject var settingsVM: SettingsViewModel
 
-    var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
+    private var recentTransactions: [Transaction] {
+        Array(transactionVM.transactions.prefix(5))
+    }
 
-                // MARK: - Budget Snapshot
-                if !budgetVM.budgets.isEmpty {
+    private var currentBalance: Double {
+        transactionVM.transactions.reduce(0) { total, transaction in
+            transaction.isIncome
+            ? total + transaction.amount
+            : total - transaction.amount
+        }
+    }
+
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(spacing: 20) {
+
+                    balanceCard
+
                     BudgetSnapshotView(
                         budgets: budgetVM.budgets,
                         currencyCode: settingsVM.settings.currencyCode
                     )
-                    .onAppear {
-                        let range = budgetVM.currentPeriodRange()
-                        budgetVM.updateBudgets(for: range.start, end: range.end)
-                    }
-                }
 
-                // MARK: - Recent Transactions
-                VStack(alignment: .leading) {
-                    Text("Recent Transactions")
-                        .font(.headline)
-                        .padding(.horizontal)
-                    
-                    ForEach(transactionVM.expandedTransactions(from: Date().addingTimeInterval(-30*24*60*60), to: Date()).prefix(5)) { transaction in
-                        TransactionRow(transaction: transaction,
-                                       currencyCode: settingsVM.settings.currencyCode)
-                            .padding(.horizontal)
-                    }
+                    recentTransactionsSection
                 }
+                .padding()
+            }
+            .background(AppColors.background)
+            .navigationTitle("Home")
+            .onAppear {
+                refreshBudgets()
             }
         }
-        .navigationTitle("Home")
     }
-}
 
-
-    // MARK: - Balance Card
     private var balanceCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 8) {
             Text("Current Balance")
                 .font(.headline)
-            Text(CurrencyFormatter.format(
-                amount: budgetVM.totalRemaining,
-                currencyCode: settingsVM.settings.currencyCode
-            ))
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .foregroundColor(budgetVM.totalRemaining >= 0 ? AppColors.income : AppColors.expense)
+                .foregroundColor(AppColors.primaryText)
+
+            Text(
+                CurrencyFormatter.format(
+                    amount: currentBalance,
+                    currencyCode: settingsVM.settings.currencyCode
+                )
+            )
+            .font(.largeTitle)
+            .fontWeight(.bold)
+            .foregroundColor(currentBalance >= 0 ? AppColors.income : AppColors.expense)
         }
-        .padding()
-        .frame(maxWidth: .infinity)
-        .background(AppColors.cardBackground)
-        .cornerRadius(12)
-        .shadow(radius: 2)
-    }
-
-    // MARK: - Budget Snapshot
-    private var budgetSnapshot: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Budget Snapshot")
-                .font(.headline)
-
-            ForEach(budgetVM.budgets) { budget in
-                VStack(alignment: .leading) {
-                    HStack {
-                        Image(systemName: budget.category.systemIcon)
-                            .foregroundColor(AppColors.accent)
-                        Text(budget.category.name)
-                        Spacer()
-                        Text(CurrencyFormatter.format(amount: budget.remaining,
-                                                      currencyCode: settingsVM.settings.currencyCode))
-                            .foregroundColor(budget.isOverBudget ? AppColors.expense : AppColors.income)
-                    }
-
-                    ProgressView(value: budget.progress)
-                        .accentColor(budget.isOverBudget ? AppColors.expense : AppColors.accent)
-                }
-                .padding(.vertical, 4)
-            }
-        }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
         .background(AppColors.cardBackground)
         .cornerRadius(12)
         .shadow(radius: 2)
     }
 
-    // MARK: - Recent Transactions Section
     private var recentTransactionsSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 12) {
             Text("Recent Transactions")
                 .font(.headline)
+                .foregroundColor(AppColors.primaryText)
 
-            ForEach(recentTransactions) { tx in
-                HStack {
-                    Image(systemName: tx.category.systemIcon)
-                        .foregroundColor(AppColors.accent)
-                        .frame(width: 30)
-                    VStack(alignment: .leading) {
-                        Text(tx.title)
-                            .fontWeight(.medium)
-                        Text(DateHelper.formatDate(tx.date))
-                            .font(.caption)
-                            .foregroundColor(AppColors.secondaryText)
-                    }
-                    Spacer()
-                    Text(CurrencyFormatter.format(amount: tx.amount,
-                                                  currencyCode: settingsVM.settings.currencyCode))
-                        .foregroundColor(tx.isIncome ? AppColors.income : AppColors.expense)
+            if recentTransactions.isEmpty {
+                Text("No transactions yet")
+                    .font(.caption)
+                    .foregroundColor(AppColors.secondaryText)
+            } else {
+                ForEach(recentTransactions) { transaction in
+                    TransactionRow(
+                        transaction: transaction,
+                        currencyCode: settingsVM.settings.currencyCode
+                    )
                 }
-                .padding(.vertical, 4)
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
         .background(AppColors.cardBackground)
         .cornerRadius(12)
         .shadow(radius: 2)
+    }
+
+    private func refreshBudgets() {
+        let start = DateHelper.startOfMonth(
+            for: Date(),
+            monthStartDay: settingsVM.settings.monthStartDay
+        )
+
+        let end = DateHelper.endOfMonth(
+            for: Date(),
+            monthStartDay: settingsVM.settings.monthStartDay
+        )
+
+        budgetVM.updateBudgets(
+            transactions: transactionVM.expandedTransactions(from: start, to: end),
+            startDate: start,
+            endDate: end
+        )
     }
 }
 
