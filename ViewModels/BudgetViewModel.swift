@@ -5,64 +5,69 @@ class BudgetViewModel: ObservableObject {
 
     @Published var budgets: [Budget] = []
 
-    @EnvironmentObject var transactionVM: TransactionViewModel
-    @EnvironmentObject var settingsVM: SettingsViewModel
-
-    private let calendar = Calendar.current
-
-    // MARK: - Add new budget
+    // MARK: - Add Budget
     func addBudget(_ budget: Budget) {
         budgets.append(budget)
     }
 
-    // MARK: - Reset budgets at month/payroll start
-    func resetBudgets() {
-        for index in budgets.indices {
-
-            let budget = budgets[index]
-
-            var newSpent: Double = 0
-            var newRemaining: Double = budget.limit
-
-            if settingsVM.settings.carryOverEnabled {
-                // Carry over remaining from last period
-                let remaining = budget.limit - budget.spent
-                newRemaining += max(0, remaining)
-            }
-
-            budgets[index].spent = newSpent
-            budgets[index].remaining = newRemaining
-            budgets[index].progress = 0
+    // MARK: - Set or Update Budget
+    func setBudget(for category: Category, limit: Double) {
+        if let index = budgets.firstIndex(where: { $0.category.id == category.id }) {
+            budgets[index].limit = limit
+        } else {
+            let newBudget = Budget(
+                category: category,
+                limit: limit,
+                spent: 0
+            )
+            budgets.append(newBudget)
         }
     }
 
-    // MARK: - Update budgets based on transactions
-    func updateBudgets(for startDate: Date, endDate: Date) {
+    // MARK: - Update Budgets From Transactions
+    func updateBudgets(
+        transactions: [Transaction],
+        startDate: Date,
+        endDate: Date
+    ) {
         for index in budgets.indices {
-            let budget = budgets[index]
+            let category = budgets[index].category
 
-            let categoryTransactions = transactionVM.expandedTransactions(from: startDate, to: endDate)
-                .filter { $0.category.name == budget.category.name && !$0.isIncome }
+            let spentAmount = transactions
+                .filter {
+                    !$0.isIncome &&
+                    $0.category.id == category.id &&
+                    $0.date >= startDate &&
+                    $0.date <= endDate
+                }
+                .reduce(0) { $0 + $1.amount }
 
-            let spentAmount = categoryTransactions.reduce(0) { $0 + $1.amount }
             budgets[index].spent = spentAmount
-            budgets[index].remaining = max(0, budget.limit - spentAmount)
-            budgets[index].progress = min(1.0, spentAmount / budget.limit)
         }
     }
 
-    // MARK: - Helper: Get current payroll month date range
-    func currentPeriodRange() -> (start: Date, end: Date) {
-        guard let settings = settingsVM.settings else {
-            let now = Date()
-            return (now, now)
+    // MARK: - Reset Budgets
+    func resetBudgets(carryOverEnabled: Bool) {
+        for index in budgets.indices {
+            if carryOverEnabled {
+                let remaining = budgets[index].remaining
+                budgets[index].spent = remaining > 0 ? -remaining : 0
+            } else {
+                budgets[index].spent = 0
+            }
         }
+    }
 
-        let monthStartDay = settings.monthStartDay
+    // MARK: - Totals
+    var totalLimit: Double {
+        budgets.reduce(0) { $0 + $1.limit }
+    }
 
-        let start = DateHelper.startOfMonth(for: Date(), monthStartDay: monthStartDay)
-        let end = DateHelper.endOfMonth(for: Date(), monthStartDay: monthStartDay)
+    var totalSpent: Double {
+        budgets.reduce(0) { $0 + $1.spent }
+    }
 
-        return (start, end)
+    var totalRemaining: Double {
+        budgets.reduce(0) { $0 + $1.remaining }
     }
 }

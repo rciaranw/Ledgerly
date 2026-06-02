@@ -7,7 +7,11 @@ struct HomeView: View {
     @EnvironmentObject var settingsVM: SettingsViewModel
 
     private var recentTransactions: [Transaction] {
-        Array(transactionVM.transactions.prefix(5))
+        Array(
+            transactionVM.transactions
+                .sorted { $0.date > $1.date }
+                .prefix(5)
+        )
     }
 
     private var currentBalance: Double {

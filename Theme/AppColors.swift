@@ -3,7 +3,6 @@ import SwiftUI
 struct AppColors {
 
     // MARK: - Core Theme
-    // Main theme colour (Turquoise)
     static let accent = Color(
         red: 0.20,
         green: 0.78,
@@ -25,4 +24,11 @@ struct AppColors {
     // MARK: - Backgrounds
     static let background = Color.white
     static let cardBackground = Color.white
+
+    // MARK: - Icons
+    static let iconBackground = Color(
+        red: 0.95,
+        green: 0.97,
+        blue: 0.97
+    )
 }

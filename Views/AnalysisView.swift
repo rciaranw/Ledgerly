@@ -1,98 +1,187 @@
 import SwiftUI
-import Chart
 
 struct AnalysisView: View {
 
+    @EnvironmentObject var transactionVM: TransactionViewModel
     @EnvironmentObject var budgetVM: BudgetViewModel
     @EnvironmentObject var settingsVM: SettingsViewModel
 
+    private var currentPeriodStart: Date {
+        DateHelper.startOfMonth(
+            for: Date(),
+            monthStartDay: settingsVM.settings.monthStartDay
+        )
+    }
+
+    private var currentPeriodEnd: Date {
+        DateHelper.endOfMonth(
+            for: Date(),
+            monthStartDay: settingsVM.settings.monthStartDay
+        )
+    }
+
+    private var currentPeriodTransactions: [Transaction] {
+        transactionVM.expandedTransactions(
+            from: currentPeriodStart,
+            to: currentPeriodEnd
+        )
+    }
+
+    private var totalIncome: Double {
+        currentPeriodTransactions
+            .filter { $0.isIncome }
+            .reduce(0) { $0 + $1.amount }
+    }
+
+    private var totalExpenses: Double {
+        currentPeriodTransactions
+            .filter { !$0.isIncome }
+            .reduce(0) { $0 + $1.amount }
+    }
+
+    private var netAmount: Double {
+        totalIncome - totalExpenses
+    }
+
     var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                Text("Income vs Expenses")
-                    .font(.headline)
+        NavigationView {
+            ScrollView {
+                VStack(spacing: 20) {
 
-                // Pie chart using PieSlice component
-                PieChartView(budgets: budgetVM.budgets,
-                             currencyCode: settingsVM.settings.currencyCode)
-                    .frame(height: 200)
-                    .padding()
+                    incomeExpenseSummary
 
-                // Category budgets bar chart
-                VStack(alignment: .leading, spacing: 10) {
-                    ForEach(budgetVM.budgets) { budget in
-                        HStack {
-                            Text(budget.category.name)
-                                .frame(width: 100, alignment: .leading)
+                    PieChartView(
+                        budgets: budgetVM.budgets,
+                        currencyCode: settingsVM.settings.currencyCode
+                    )
+                    .frame(height: 220)
 
-                            ProgressView(value: budget.progress)
-                                .accentColor(budget.isOverBudget ? AppColors.expense : AppColors.accent)
-
-                            Text(CurrencyFormatter.format(amount: budget.remaining,
-                                                          currencyCode: settingsVM.settings.currencyCode))
-                                .foregroundColor(budget.isOverBudget ? AppColors.expense : AppColors.income)
-                                .frame(width: 60, alignment: .trailing)
-                        }
-                    }
+                    categoryBudgetSection
                 }
                 .padding()
             }
-        }
-        .onAppear {
-            let range = budgetVM.currentPeriodRange()
-            budgetVM.updateBudgets(for: range.start, end: range.end)
-        }
-        .navigationTitle("Analysis")
-    }
-}
-
-
-    // MARK: - Income vs Expense Pie Chart
-    private var incomeExpenseChart: some View {
-        VStack(alignment: .leading) {
-            Text("Income vs Expense")
-                .font(.headline)
-
-            Chart {
-                PieSlice(value: totalIncome, label: "Income", color: AppColors.income)
-                PieSlice(value: totalExpense, label: "Expense", color: AppColors.expense)
+            .background(AppColors.background)
+            .navigationTitle("Analysis")
+            .onAppear {
+                refreshBudgets()
             }
-            .frame(height: 200)
         }
-        .padding()
-        .background(AppColors.cardBackground)
-        .cornerRadius(12)
-        .shadow(radius: 2)
     }
 
-    // MARK: - Category Budget Chart
-    private var categoryBudgetChart: some View {
-        VStack(alignment: .leading) {
-            Text("Budget Progress by Category")
+    private var incomeExpenseSummary: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Income vs Expenses")
                 .font(.headline)
+                .foregroundColor(AppColors.primaryText)
 
-            ForEach(budgetVM.budgets) { budget in
+            HStack {
                 VStack(alignment: .leading) {
-                    HStack {
-                        Image(systemName: budget.category.systemIcon)
-                            .foregroundColor(AppColors.accent)
-                        Text(budget.category.name)
-                        Spacer()
-                        Text(CurrencyFormatter.format(amount: budget.remaining,
-                                                      currencyCode: settingsVM.settings.currencyCode))
-                            .foregroundColor(budget.isOverBudget ? AppColors.expense : AppColors.income)
-                    }
+                    Text("Income")
+                        .font(.caption)
+                        .foregroundColor(AppColors.secondaryText)
 
-                    ProgressView(value: budget.progress)
-                        .accentColor(budget.isOverBudget ? AppColors.expense : AppColors.accent)
+                    Text(
+                        CurrencyFormatter.format(
+                            amount: totalIncome,
+                            currencyCode: settingsVM.settings.currencyCode
+                        )
+                    )
+                    .foregroundColor(AppColors.income)
+                    .fontWeight(.semibold)
                 }
-                .padding(.vertical, 4)
+
+                Spacer()
+
+                VStack(alignment: .trailing) {
+                    Text("Expenses")
+                        .font(.caption)
+                        .foregroundColor(AppColors.secondaryText)
+
+                    Text(
+                        CurrencyFormatter.format(
+                            amount: totalExpenses,
+                            currencyCode: settingsVM.settings.currencyCode
+                        )
+                    )
+                    .foregroundColor(AppColors.expense)
+                    .fontWeight(.semibold)
+                }
+            }
+
+            Divider()
+
+            HStack {
+                Text("Net")
+                    .fontWeight(.medium)
+
+                Spacer()
+
+                Text(
+                    CurrencyFormatter.format(
+                        amount: netAmount,
+                        currencyCode: settingsVM.settings.currencyCode
+                    )
+                )
+                .fontWeight(.bold)
+                .foregroundColor(netAmount >= 0 ? AppColors.income : AppColors.expense)
             }
         }
         .padding()
         .background(AppColors.cardBackground)
         .cornerRadius(12)
         .shadow(radius: 2)
+    }
+
+    private var categoryBudgetSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Budget Progress")
+                .font(.headline)
+                .foregroundColor(AppColors.primaryText)
+
+            if budgetVM.budgets.isEmpty {
+                Text("No budgets set yet")
+                    .font(.caption)
+                    .foregroundColor(AppColors.secondaryText)
+            } else {
+                ForEach(budgetVM.budgets) { budget in
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack {
+                            Image(systemName: budget.category.systemIcon)
+                                .foregroundColor(AppColors.accent)
+
+                            Text(budget.category.name)
+                                .foregroundColor(AppColors.primaryText)
+
+                            Spacer()
+
+                            Text(
+                                CurrencyFormatter.format(
+                                    amount: budget.remaining,
+                                    currencyCode: settingsVM.settings.currencyCode
+                                )
+                            )
+                            .foregroundColor(budget.isOverBudget ? AppColors.expense : AppColors.income)
+                        }
+
+                        ProgressView(value: min(budget.progress, 1.0))
+                            .accentColor(budget.isOverBudget ? AppColors.expense : AppColors.accent)
+                    }
+                    .padding(.vertical, 4)
+                }
+            }
+        }
+        .padding()
+        .background(AppColors.cardBackground)
+        .cornerRadius(12)
+        .shadow(radius: 2)
+    }
+
+    private func refreshBudgets() {
+        budgetVM.updateBudgets(
+            transactions: currentPeriodTransactions,
+            startDate: currentPeriodStart,
+            endDate: currentPeriodEnd
+        )
     }
 }
 

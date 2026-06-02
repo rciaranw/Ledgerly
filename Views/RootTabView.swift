@@ -2,46 +2,53 @@ import SwiftUI
 
 struct RootTabView: View {
 
+    // MARK: - Shared ViewModels
+    @StateObject private var transactionVM = TransactionViewModel()
+    @StateObject private var budgetVM = BudgetViewModel()
+    @StateObject private var settingsVM = SettingsViewModel()
+
     // MARK: - Selected Tab
     @State private var selectedTab: Tab = .home
 
     // MARK: - Tabs Enum
     enum Tab {
-        case home, transactions, analysis, settings
+        case home
+        case transactions
+        case analysis
+        case settings
     }
 
     var body: some View {
         TabView(selection: $selectedTab) {
 
-            // MARK: - Home
             HomeView()
                 .tabItem {
                     Label("Home", systemImage: "house.fill")
                 }
                 .tag(Tab.home)
 
-            // MARK: - Transactions
             TransactionsView()
                 .tabItem {
                     Label("Transactions", systemImage: "list.bullet")
                 }
                 .tag(Tab.transactions)
 
-            // MARK: - Analysis
             AnalysisView()
                 .tabItem {
                     Label("Analysis", systemImage: "chart.pie.fill")
                 }
                 .tag(Tab.analysis)
 
-            // MARK: - Settings
             SettingsView()
                 .tabItem {
                     Label("Settings", systemImage: "gearshape.fill")
                 }
                 .tag(Tab.settings)
         }
-        .accentColor(AppColors.accent) // Turquoise main theme color
+        .accentColor(AppColors.accent)
+        .environmentObject(transactionVM)
+        .environmentObject(budgetVM)
+        .environmentObject(settingsVM)
     }
 }
 

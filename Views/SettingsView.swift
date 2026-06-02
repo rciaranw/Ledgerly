@@ -29,25 +29,29 @@ struct SettingsView: View {
 
                 // MARK: - Month Start / Payroll
                 Section(header: Text("Month / Payroll Start")) {
-                    Stepper("Start Day: \(settingsVM.settings.monthStartDay)",
-                            value: $settingsVM.settings.monthStartDay,
-                            in: 1...31)
+                    Stepper(
+                        "Start Day: \(settingsVM.settings.monthStartDay)",
+                        value: $settingsVM.settings.monthStartDay,
+                        in: 1...31
+                    )
                 }
 
                 // MARK: - Budget Carryover
                 Section(header: Text("Budget")) {
-                    Toggle("Carry Over Remaining Budget", isOn: $settingsVM.settings.carryOverEnabled)
+                    Toggle(
+                        "Carry Over Remaining Budget",
+                        isOn: $settingsVM.settings.carryOverEnabled
+                    )
                 }
 
                 // MARK: - Theme
-Section(header: Text("Theme")) {
-    Picker("Theme", selection: $settingsVM.settings.theme) {
-        Text("Turquoise").tag("Turquoise")
-        Text("Dark").tag("Dark")
-        Text("Light").tag("Light")
-    }
-}
-
+                Section(header: Text("Theme")) {
+                    Picker("Theme", selection: $settingsVM.settings.theme) {
+                        Text("Turquoise").tag("Turquoise")
+                        Text("Dark").tag("Dark")
+                        Text("Light").tag("Light")
+                    }
+                }
             }
             .navigationTitle("Settings")
         }

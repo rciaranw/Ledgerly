@@ -1,9 +1,39 @@
 import Foundation
+import SwiftUI
 
-struct SettingsModel: Codable {
-    var currencyCode: String = "GBP"          // Default currency
-    var weekStartDay: Int = 1                 // 1 = Monday
-    var monthStartDay: Int = 1                // 1 = default start of month, can be payroll start
-    var carryOverEnabled: Bool = false        // Carry over remaining budget
-    var theme: String = "Turquoise"           // Default theme
+class SettingsViewModel: ObservableObject {
+
+    // MARK: - Settings State
+    @Published var settings = SettingsModel()
+
+    // MARK: - Currency
+    func setCurrency(_ currencyCode: String) {
+        settings.currencyCode = currencyCode
+    }
+
+    // MARK: - Week Start
+    func setWeekStartDay(_ day: Int) {
+        guard day >= 1 && day <= 7 else { return }
+        settings.weekStartDay = day
+    }
+
+    // MARK: - Month / Payroll Start
+    func setMonthStartDay(_ day: Int) {
+        guard day >= 1 && day <= 31 else { return }
+        settings.monthStartDay = day
+    }
+
+    // MARK: - Carryover
+    func setCarryOverEnabled(_ enabled: Bool) {
+        settings.carryOverEnabled = enabled
+    }
+
+    func toggleCarryOver() {
+        settings.carryOverEnabled.toggle()
+    }
+
+    // MARK: - Theme
+    func setTheme(_ theme: String) {
+        settings.theme = theme
+    }
 }

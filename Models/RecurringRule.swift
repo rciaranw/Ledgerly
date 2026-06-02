@@ -1,31 +1,55 @@
 import Foundation
 
 // MARK: - Recurrence Units
-enum RecurringUnit: String, Codable, CaseIterable {
+enum RecurringUnit: String, Codable, CaseIterable, Identifiable {
     case days
     case weeks
     case months
     case years
+
+    var id: String {
+        rawValue
+    }
+
+    var displayName: String {
+        switch self {
+        case .days:
+            return "Days"
+        case .weeks:
+            return "Weeks"
+        case .months:
+            return "Months"
+        case .years:
+            return "Years"
+        }
+    }
+
+    var calendarComponent: Calendar.Component {
+        switch self {
+        case .days:
+            return .day
+        case .weeks:
+            return .weekOfYear
+        case .months:
+            return .month
+        case .years:
+            return .year
+        }
+    }
 }
 
 // MARK: - Recurring Rule Model
 struct RecurringRule: Codable, Identifiable {
-    
-    // Unique ID for each recurring setup
+
+    // MARK: - Identity
     let id: UUID
-    
-    // Interval of recurrence, e.g., every 2 weeks
+
+    // MARK: - Rule
     var interval: Int
-    
-    // Unit of recurrence
     var unit: RecurringUnit
-    
-    // Start date for recurrence
     var startDate: Date
-    
-    // Optional end date (nil = indefinite)
     var endDate: Date?
-    
+
     // MARK: - Initialiser
     init(
         id: UUID = UUID(),
@@ -40,27 +64,34 @@ struct RecurringRule: Codable, Identifiable {
         self.startDate = startDate
         self.endDate = endDate
     }
-    
-    // MARK: - Helper
-    
-    /// Checks if a given date is included in this recurring schedule
+
+    // MARK: - Helpers
     func occurs(on date: Date) -> Bool {
+        guard interval > 0 else { return false }
         guard date >= startDate else { return false }
-        
+
+        if let endDate, date > endDate {
+            return false
+        }
+
         let calendar = Calendar.current
+
         switch unit {
         case .days:
-            let daysDiff = calendar.dateComponents([.day], from: startDate, to: date).day ?? 0
-            return daysDiff % interval == 0
+            let difference = calendar.dateComponents([.day], from: startDate, to: date).day ?? 0
+            return difference % interval == 0
+
         case .weeks:
-            let weeksDiff = calendar.dateComponents([.weekOfYear], from: startDate, to: date).weekOfYear ?? 0
-            return weeksDiff % interval == 0
+            let difference = calendar.dateComponents([.weekOfYear], from: startDate, to: date).weekOfYear ?? 0
+            return difference % interval == 0
+
         case .months:
-            let monthsDiff = calendar.dateComponents([.month], from: startDate, to: date).month ?? 0
-            return monthsDiff % interval == 0
+            let difference = calendar.dateComponents([.month], from: startDate, to: date).month ?? 0
+            return difference % interval == 0
+
         case .years:
-            let yearsDiff = calendar.dateComponents([.year], from: startDate, to: date).year ?? 0
-            return yearsDiff % interval == 0
+            let difference = calendar.dateComponents([.year], from: startDate, to: date).year ?? 0
+            return difference % interval == 0
         }
     }
 }

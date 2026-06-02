@@ -6,36 +6,33 @@ struct TransactionsView: View {
     @EnvironmentObject var settingsVM: SettingsViewModel
 
     @State private var showAddTransaction = false
-    @State private var filterStartDate: Date = Calendar.current.startOfDay(for: Date())
-    @State private var filterEndDate: Date = Calendar.current.startOfDay(for: Date())
 
     var body: some View {
         NavigationView {
             List {
-                ForEach(filteredTransactions) { tx in
-                    HStack {
-                        Image(systemName: tx.category.systemIcon)
-                            .foregroundColor(AppColors.accent)
-                            .frame(width: 30)
-                        VStack(alignment: .leading) {
-                            Text(tx.title)
-                                .fontWeight(.medium)
-                            Text(DateHelper.formatDate(tx.date))
-                                .font(.caption)
-                                .foregroundColor(AppColors.secondaryText)
-                        }
-                        Spacer()
-                        Text(CurrencyFormatter.format(amount: tx.amount,
-                                                      currencyCode: settingsVM.settings.currencyCode))
-                            .foregroundColor(tx.isIncome ? AppColors.income : AppColors.expense)
+                if filteredTransactions.isEmpty {
+
+                    Text("No transactions found")
+                        .foregroundColor(AppColors.secondaryText)
+
+                } else {
+
+                    ForEach(filteredTransactions) { transaction in
+
+                        TransactionRow(
+                            transaction: transaction,
+                            currencyCode: settingsVM.settings.currencyCode
+                        )
                     }
+                    .onDelete(perform: transactionVM.delete)
                 }
-                .onDelete(perform: transactionVM.delete)
             }
             .navigationTitle("Transactions")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: { showAddTransaction.toggle() }) {
+                    Button {
+                        showAddTransaction.toggle()
+                    } label: {
                         Image(systemName: "plus")
                     }
                 }
@@ -48,9 +45,9 @@ struct TransactionsView: View {
         }
     }
 
-    // MARK: - Filtered Transactions
     private var filteredTransactions: [Transaction] {
-        transactionVM.expandedTransactions(from: filterStartDate, to: filterEndDate)
+        transactionVM.transactions
+            .sorted { $0.date > $1.date }
     }
 }
 

@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct ExportView: View {
 
@@ -6,56 +7,74 @@ struct ExportView: View {
     @EnvironmentObject var settingsVM: SettingsViewModel
 
     @State private var showShareSheet = false
-    @State private var csvData: URL?
+    @State private var csvURL: URL?
 
     var body: some View {
         NavigationView {
             VStack(spacing: 20) {
                 Text("Export your transactions as CSV")
                     .font(.headline)
+                    .foregroundColor(AppColors.primaryText)
                     .padding()
 
-                Button(action: { generateCSV() }) {
+                Button {
+                    generateCSV()
+                } label: {
                     Text("Generate CSV")
-                        .foregroundColor(.white)
+                        .foregroundColor(AppColors.buttonText)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(AppColors.accent)
+                        .background(AppColors.buttonBackground)
                         .cornerRadius(10)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(AppColors.primaryText, lineWidth: 1)
+                        )
                 }
 
-                if csvData != nil {
-                    Button(action: { showShareSheet = true }) {
+                if csvURL != nil {
+                    Button {
+                        showShareSheet = true
+                    } label: {
                         Text("Share CSV")
-                            .foregroundColor(.white)
+                            .foregroundColor(AppColors.buttonText)
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(AppColors.accent)
+                            .background(AppColors.buttonBackground)
                             .cornerRadius(10)
-                    }
-                    .sheet(isPresented: $showShareSheet) {
-                        if let csvData = csvData {
-                            ShareSheet(activityItems: [csvData])
-                        }
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(AppColors.primaryText, lineWidth: 1)
+                            )
                     }
                 }
 
                 Spacer()
             }
             .padding()
+            .background(AppColors.background)
             .navigationTitle("Export Data")
+            .sheet(isPresented: $showShareSheet) {
+                if let csvURL {
+                    ShareSheet(activityItems: [csvURL])
+                }
+            }
         }
     }
 
     // MARK: - Generate CSV and save to temporary file
     private func generateCSV() {
-        let csvString = CSVExporter.export(transactions: transactionVM.transactions,
-                                           currencyCode: settingsVM.settings.currencyCode)
+        let csvString = CSVExporter.export(
+            transactions: transactionVM.transactions,
+            currencyCode: settingsVM.settings.currencyCode
+        )
 
-        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("Transactions.csv")
+        let tempURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("LedgerlyTransactions.csv")
+
         do {
             try csvString.write(to: tempURL, atomically: true, encoding: .utf8)
-            csvData = tempURL
+            csvURL = tempURL
         } catch {
             print("Error writing CSV: \(error)")
         }
@@ -64,15 +83,21 @@ struct ExportView: View {
 
 // MARK: - Share Sheet Wrapper
 struct ShareSheet: UIViewControllerRepresentable {
+
     let activityItems: [Any]
     let applicationActivities: [UIActivity]? = nil
 
     func makeUIViewController(context: Context) -> UIActivityViewController {
-        UIActivityViewController(activityItems: activityItems,
-                                 applicationActivities: applicationActivities)
+        UIActivityViewController(
+            activityItems: activityItems,
+            applicationActivities: applicationActivities
+        )
     }
 
-    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+    func updateUIViewController(
+        _ uiViewController: UIActivityViewController,
+        context: Context
+    ) {}
 }
 
 struct ExportView_Previews: PreviewProvider {

@@ -1,27 +1,45 @@
 import Foundation
 
-struct Category: Identifiable, Hashable, Codable {
+struct Budget: Identifiable, Codable {
 
     // MARK: - Identity
     let id: UUID
 
-    // MARK: - Display
-    var name: String
-    var systemIcon: String   // SF Symbol name
+    // MARK: - Category
+    let category: Category
 
-    // MARK: - Behaviour
-    let isDefault: Bool      // Default categories cannot be edited/deleted
+    // MARK: - Budget Values
+    var limit: Double
+    var spent: Double
 
     // MARK: - Initialiser
     init(
         id: UUID = UUID(),
-        name: String,
-        systemIcon: String,
-        isDefault: Bool = false
+        category: Category,
+        limit: Double,
+        spent: Double = 0
     ) {
         self.id = id
-        self.name = name
-        self.systemIcon = systemIcon
-        self.isDefault = isDefault
+        self.category = category
+        self.limit = limit
+        self.spent = spent
+    }
+
+    // MARK: - Computed Values
+
+    var remaining: Double {
+        limit - spent
+    }
+
+    var progress: Double {
+        guard limit > 0 else {
+            return 0
+        }
+
+        return spent / limit
+    }
+
+    var isOverBudget: Bool {
+        spent > limit
     }
 }

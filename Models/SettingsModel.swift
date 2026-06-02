@@ -14,7 +14,7 @@ struct SettingsModel: Codable {
 
     // MARK: - Theme
     // Future feature: dark mode, light mode, custom colors
-    var theme: String = "Default"    
+    var theme: String = "Turquoise"    
 
     // MARK: - Budget Carryover
     var carryOverEnabled: Bool = false
