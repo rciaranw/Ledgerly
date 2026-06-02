@@ -21,6 +21,10 @@ struct AddTransactionView: View {
     @State private var recurrenceUnit: RecurringUnit = .months
     @State private var recurrenceEndDate: Date = Date()
 
+    // MARK: - Validation
+    @State private var showValidationAlert = false
+    @State private var validationMessage = ""
+
     var body: some View {
         NavigationView {
             Form {
@@ -81,11 +85,31 @@ struct AddTransactionView: View {
                     saveTransaction()
                 }
             )
+            .alert(
+                "Unable to Save",
+                isPresented: $showValidationAlert
+            ) {
+                Button("OK") { }
+            } message: {
+                Text(validationMessage)
+            }
         }
     }
 
     private func saveTransaction() {
+        let trimmedTitle = title.trimmingCharacters(
+            in: .whitespacesAndNewlines
+        )
+
         guard let amountValue = Double(amount) else {
+            validationMessage = "Please enter a valid amount."
+            showValidationAlert = true
+            return
+        }
+
+        guard amountValue > 0 else {
+            validationMessage = "Amount must be greater than zero."
+            showValidationAlert = true
             return
         }
 
@@ -99,7 +123,9 @@ struct AddTransactionView: View {
             : nil
 
         let transaction = Transaction(
-            title: title.isEmpty ? selectedCategory.name : title,
+            title: trimmedTitle.isEmpty
+                ? selectedCategory.name
+                : trimmedTitle,
             notes: notes,
             amount: amountValue,
             date: date,
@@ -109,6 +135,7 @@ struct AddTransactionView: View {
         )
 
         transactionVM.add(transaction)
+
         presentationMode.wrappedValue.dismiss()
     }
 }
