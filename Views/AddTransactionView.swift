@@ -8,7 +8,7 @@ struct AddTransactionView: View {
 
     // MARK: - Transaction Inputs
     @State private var isIncome: Bool = true
-    @State private var selectedCategory: Category? = nil
+    @State private var selectedCategory: Category = DefaultCategories.fallback
     @State private var title: String = ""
     @State private var notes: String = ""
     @State private var amount: String = ""
@@ -20,16 +20,12 @@ struct AddTransactionView: View {
     @State private var recurrenceUnit: RecurringUnit = .months
     @State private var recurrenceEndDate: Date = Date()
 
-    // MARK: - Sample default categories (replace with your defaults later)
-    let defaultCategories: [Category] = [
-        Category(name: "Salary", systemIcon: "banknote.fill", isDefault: true),
-        Category(name: "Shopping", systemIcon: "bag.fill", isDefault: true),
-        Category(name: "Travel", systemIcon: "airplane", isDefault: true)
-    ]
+    private let categories: [Category] = DefaultCategories.all
 
     var body: some View {
         NavigationView {
             Form {
+
                 // MARK: - Type Selector
                 Picker("Type", selection: $isIncome) {
                     Text("Income").tag(true)
@@ -39,12 +35,12 @@ struct AddTransactionView: View {
 
                 // MARK: - Category Picker
                 Picker("Category", selection: $selectedCategory) {
-                    ForEach(defaultCategories) { category in
+                    ForEach(categories) { category in
                         HStack {
                             Image(systemName: category.systemIcon)
                             Text(category.name)
                         }
-                        .tag(category as Category?)
+                        .tag(category)
                     }
                 }
 
@@ -65,42 +61,58 @@ struct AddTransactionView: View {
                 Toggle("Recurring Transaction", isOn: $isRecurring)
 
                 if isRecurring {
-                    Stepper("Every \(recurrenceInterval) \(recurrenceUnit.rawValue)",
-                            value: $recurrenceInterval, in: 1...31)
+                    Stepper(
+                        "Every \(recurrenceInterval) \(recurrenceUnit.displayName)",
+                        value: $recurrenceInterval,
+                        in: 1...31
+                    )
+
                     Picker("Unit", selection: $recurrenceUnit) {
-                        ForEach(RecurringUnit.allCases, id: \.self) { unit in
-                            Text(unit.rawValue.capitalized).tag(unit)
+                        ForEach(RecurringUnit.allCases) { unit in
+                            Text(unit.displayName).tag(unit)
                         }
                     }
-                    DatePicker("End Date", selection: $recurrenceEndDate, displayedComponents: [.date])
+
+                    DatePicker(
+                        "End Date",
+                        selection: $recurrenceEndDate,
+                        displayedComponents: [.date]
+                    )
                 }
             }
             .navigationTitle("Add Transaction")
             .navigationBarItems(
-                leading: Button("Cancel") { presentationMode.wrappedValue.dismiss() },
-                trailing: Button("Save") { saveTransaction() }
+                leading: Button("Cancel") {
+                    presentationMode.wrappedValue.dismiss()
+                },
+                trailing: Button("Save") {
+                    saveTransaction()
+                }
             )
         }
     }
 
     // MARK: - Save Transaction
     private func saveTransaction() {
-        guard let category = selectedCategory,
-              let amountValue = Double(amount) else { return }
+        guard let amountValue = Double(amount) else {
+            return
+        }
 
         let recurringRule = isRecurring
-            ? RecurringRule(interval: recurrenceInterval,
-                            unit: recurrenceUnit,
-                            startDate: date,
-                            endDate: recurrenceEndDate)
+            ? RecurringRule(
+                interval: recurrenceInterval,
+                unit: recurrenceUnit,
+                startDate: date,
+                endDate: recurrenceEndDate
+            )
             : nil
 
         let transaction = Transaction(
-            title: title,
+            title: title.isEmpty ? selectedCategory.name : title,
             notes: notes,
             amount: amountValue,
             date: date,
-            category: category,
+            category: selectedCategory,
             isIncome: isIncome,
             recurringRule: recurringRule
         )
