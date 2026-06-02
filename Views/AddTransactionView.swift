@@ -4,6 +4,7 @@ struct AddTransactionView: View {
 
     @EnvironmentObject var transactionVM: TransactionViewModel
     @EnvironmentObject var settingsVM: SettingsViewModel
+    @EnvironmentObject var categoryVM: CategoryViewModel
     @Environment(\.presentationMode) var presentationMode
 
     // MARK: - Transaction Inputs
@@ -20,22 +21,18 @@ struct AddTransactionView: View {
     @State private var recurrenceUnit: RecurringUnit = .months
     @State private var recurrenceEndDate: Date = Date()
 
-    private let categories: [Category] = DefaultCategories.all
-
     var body: some View {
         NavigationView {
             Form {
 
-                // MARK: - Type Selector
                 Picker("Type", selection: $isIncome) {
                     Text("Income").tag(true)
                     Text("Expense").tag(false)
                 }
                 .pickerStyle(SegmentedPickerStyle())
 
-                // MARK: - Category Picker
                 Picker("Category", selection: $selectedCategory) {
-                    ForEach(categories) { category in
+                    ForEach(categoryVM.allCategories) { category in
                         HStack {
                             Image(systemName: category.systemIcon)
                             Text(category.name)
@@ -44,20 +41,15 @@ struct AddTransactionView: View {
                     }
                 }
 
-                // MARK: - Title
                 TextField("Title", text: $title)
 
-                // MARK: - Notes
                 TextField("Notes", text: $notes)
 
-                // MARK: - Amount
                 TextField("Amount", text: $amount)
                     .keyboardType(.decimalPad)
 
-                // MARK: - Date
                 DatePicker("Date", selection: $date, displayedComponents: [.date])
 
-                // MARK: - Recurring Transaction
                 Toggle("Recurring Transaction", isOn: $isRecurring)
 
                 if isRecurring {
@@ -92,7 +84,6 @@ struct AddTransactionView: View {
         }
     }
 
-    // MARK: - Save Transaction
     private func saveTransaction() {
         guard let amountValue = Double(amount) else {
             return
@@ -127,5 +118,6 @@ struct AddTransactionView_Previews: PreviewProvider {
         AddTransactionView()
             .environmentObject(TransactionViewModel())
             .environmentObject(SettingsViewModel())
+            .environmentObject(CategoryViewModel())
     }
 }

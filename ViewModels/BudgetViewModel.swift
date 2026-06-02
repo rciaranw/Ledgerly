@@ -3,7 +3,13 @@ import SwiftUI
 
 class BudgetViewModel: ObservableObject {
 
-    @Published var budgets: [Budget] = []
+    @Published var budgets: [Budget] = DefaultCategories.all.map {
+        Budget(
+            category: $0,
+            limit: 0,
+            spent: 0
+        )
+    }
 
     // MARK: - Add Budget
     func addBudget(_ budget: Budget) {
@@ -22,6 +28,11 @@ class BudgetViewModel: ObservableObject {
             )
             budgets.append(newBudget)
         }
+    }
+
+    // MARK: - Budget Lookup
+    func budget(for category: Category) -> Budget? {
+        budgets.first { $0.category.id == category.id }
     }
 
     // MARK: - Update Budgets From Transactions

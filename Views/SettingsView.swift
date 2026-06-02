@@ -3,6 +3,7 @@ import SwiftUI
 struct SettingsView: View {
 
     @EnvironmentObject var settingsVM: SettingsViewModel
+    @EnvironmentObject var budgetVM: BudgetViewModel
 
     var body: some View {
         NavigationView {
@@ -43,6 +44,33 @@ struct SettingsView: View {
                         isOn: $settingsVM.settings.carryOverEnabled
                     )
                 }
+// MARK: - Budget Limits
+Section(header: Text("Budget Limits")) {
+    ForEach($budgetVM.budgets) { $budget in
+        HStack {
+            Image(systemName: budget.category.systemIcon)
+                .foregroundColor(AppColors.accent)
+                .frame(width: 24)
+
+            Text(budget.category.name)
+                .foregroundColor(AppColors.primaryText)
+
+            Spacer()
+
+            TextField(
+                CurrencyFormatter.format(
+                    amount: 0,
+                    currencyCode: settingsVM.settings.currencyCode
+                ),
+                value: $budget.limit,
+                format: .currency(code: settingsVM.settings.currencyCode)
+            )
+            .keyboardType(.decimalPad)
+            .multilineTextAlignment(.trailing)
+            .frame(width: 110)
+        }
+    }
+}
 
                 // MARK: - Theme
                 Section(header: Text("Theme")) {
@@ -68,5 +96,6 @@ struct SettingsView_Previews: PreviewProvider {
     static var previews: some View {
         SettingsView()
             .environmentObject(SettingsViewModel())
+            .environmentObject(BudgetViewModel())
     }
 }

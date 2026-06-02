@@ -6,11 +6,11 @@ struct RootTabView: View {
     @StateObject private var transactionVM = TransactionViewModel()
     @StateObject private var budgetVM = BudgetViewModel()
     @StateObject private var settingsVM = SettingsViewModel()
+    @StateObject private var categoryVM = CategoryViewModel()
 
     // MARK: - Selected Tab
     @State private var selectedTab: Tab = .home
 
-    // MARK: - Tabs Enum
     enum Tab {
         case home
         case transactions
@@ -46,9 +46,11 @@ struct RootTabView: View {
                 .tag(Tab.settings)
         }
         .accentColor(AppColors.accent)
+
         .environmentObject(transactionVM)
         .environmentObject(budgetVM)
         .environmentObject(settingsVM)
+        .environmentObject(categoryVM)
     }
 }
 
