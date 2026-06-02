@@ -4,8 +4,10 @@ struct TransactionsView: View {
 
     @EnvironmentObject var transactionVM: TransactionViewModel
     @EnvironmentObject var settingsVM: SettingsViewModel
+    @EnvironmentObject var categoryVM: CategoryViewModel
 
     @State private var showAddTransaction = false
+    @State private var transactionToEdit: Transaction?
 
     var body: some View {
         NavigationView {
@@ -18,11 +20,15 @@ struct TransactionsView: View {
                 } else {
 
                     ForEach(filteredTransactions) { transaction in
-
-                        TransactionRow(
-                            transaction: transaction,
-                            currencyCode: settingsVM.settings.currencyCode
-                        )
+                        Button {
+                            transactionToEdit = transaction
+                        } label: {
+                            TransactionRow(
+                                transaction: transaction,
+                                currencyCode: settingsVM.settings.currencyCode
+                            )
+                        }
+                        .buttonStyle(PlainButtonStyle())
                     }
                     .onDelete(perform: transactionVM.delete)
                 }
@@ -31,7 +37,7 @@ struct TransactionsView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
-                        showAddTransaction.toggle()
+                        showAddTransaction = true
                     } label: {
                         Image(systemName: "plus")
                     }
@@ -41,6 +47,13 @@ struct TransactionsView: View {
                 AddTransactionView()
                     .environmentObject(transactionVM)
                     .environmentObject(settingsVM)
+                    .environmentObject(categoryVM)
+            }
+            .sheet(item: $transactionToEdit) { transaction in
+                AddTransactionView(existingTransaction: transaction)
+                    .environmentObject(transactionVM)
+                    .environmentObject(settingsVM)
+                    .environmentObject(categoryVM)
             }
         }
     }
@@ -56,5 +69,6 @@ struct TransactionsView_Previews: PreviewProvider {
         TransactionsView()
             .environmentObject(TransactionViewModel())
             .environmentObject(SettingsViewModel())
+            .environmentObject(CategoryViewModel())
     }
 }
