@@ -4,7 +4,16 @@ import SwiftUI
 class SettingsViewModel: ObservableObject {
 
     // MARK: - Settings State
-    @Published var settings = SettingsModel()
+    @Published var settings: SettingsModel {
+        didSet {
+            DataManager.saveSettings(settings)
+        }
+    }
+
+    // MARK: - Initialisation
+    init() {
+        self.settings = DataManager.loadSettings()
+    }
 
     // MARK: - Currency
     func setCurrency(_ currencyCode: String) {
