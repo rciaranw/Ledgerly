@@ -7,7 +7,16 @@ class CategoryViewModel: ObservableObject {
     let defaultCategories: [Category] = DefaultCategories.all
 
     // MARK: - User Categories
-    @Published var userCategories: [Category] = []
+    @Published var userCategories: [Category] {
+        didSet {
+            DataManager.saveUserCategories(userCategories)
+        }
+    }
+
+    // MARK: - Initialisation
+    init() {
+        self.userCategories = DataManager.loadUserCategories()
+    }
 
     // MARK: - Combined Categories
     var allCategories: [Category] {
@@ -15,8 +24,14 @@ class CategoryViewModel: ObservableObject {
     }
 
     // MARK: - Add Custom Category
-    func addUserCategory(name: String, systemIcon: String = "tag.fill") {
-        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+    func addUserCategory(
+        name: String,
+        systemIcon: String = "tag.fill"
+    ) {
+
+        let trimmedName = name.trimmingCharacters(
+            in: .whitespacesAndNewlines
+        )
 
         guard !trimmedName.isEmpty else {
             return
