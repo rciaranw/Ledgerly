@@ -3,12 +3,31 @@ import SwiftUI
 
 class BudgetViewModel: ObservableObject {
 
-    @Published var budgets: [Budget] = DefaultCategories.all.map {
-        Budget(
-            category: $0,
-            limit: 0,
-            spent: 0
-        )
+    @Published var budgets: [Budget] {
+        didSet {
+            DataManager.saveBudgets(budgets)
+        }
+    }
+
+    // MARK: - Initialisation
+    init() {
+
+        let savedBudgets = DataManager.loadBudgets()
+
+        if savedBudgets.isEmpty {
+
+            self.budgets = DefaultCategories.all.map {
+                Budget(
+                    category: $0,
+                    limit: 0,
+                    spent: 0
+                )
+            }
+
+        } else {
+
+            self.budgets = savedBudgets
+        }
     }
 
     // MARK: - Add Budget
@@ -18,21 +37,30 @@ class BudgetViewModel: ObservableObject {
 
     // MARK: - Set or Update Budget
     func setBudget(for category: Category, limit: Double) {
-        if let index = budgets.firstIndex(where: { $0.category.id == category.id }) {
+
+        if let index = budgets.firstIndex(
+            where: { $0.category.id == category.id }
+        ) {
+
             budgets[index].limit = limit
+
         } else {
+
             let newBudget = Budget(
                 category: category,
                 limit: limit,
                 spent: 0
             )
+
             budgets.append(newBudget)
         }
     }
 
     // MARK: - Budget Lookup
     func budget(for category: Category) -> Budget? {
-        budgets.first { $0.category.id == category.id }
+        budgets.first {
+            $0.category.id == category.id
+        }
     }
 
     // MARK: - Update Budgets From Transactions
@@ -41,7 +69,9 @@ class BudgetViewModel: ObservableObject {
         startDate: Date,
         endDate: Date
     ) {
+
         for index in budgets.indices {
+
             let category = budgets[index].category
 
             let spentAmount = transactions
@@ -59,11 +89,20 @@ class BudgetViewModel: ObservableObject {
 
     // MARK: - Reset Budgets
     func resetBudgets(carryOverEnabled: Bool) {
+
         for index in budgets.indices {
+
             if carryOverEnabled {
+
                 let remaining = budgets[index].remaining
-                budgets[index].spent = remaining > 0 ? -remaining : 0
+
+                budgets[index].spent =
+                    remaining > 0
+                    ? -remaining
+                    : 0
+
             } else {
+
                 budgets[index].spent = 0
             }
         }
@@ -71,14 +110,20 @@ class BudgetViewModel: ObservableObject {
 
     // MARK: - Totals
     var totalLimit: Double {
-        budgets.reduce(0) { $0 + $1.limit }
+        budgets.reduce(0) {
+            $0 + $1.limit
+        }
     }
 
     var totalSpent: Double {
-        budgets.reduce(0) { $0 + $1.spent }
+        budgets.reduce(0) {
+            $0 + $1.spent
+        }
     }
 
     var totalRemaining: Double {
-        budgets.reduce(0) { $0 + $1.remaining }
+        budgets.reduce(0) {
+            $0 + $1.remaining
+        }
     }
 }

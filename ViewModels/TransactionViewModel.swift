@@ -3,7 +3,17 @@ import SwiftUI
 
 class TransactionViewModel: ObservableObject {
 
-    @Published var transactions: [Transaction] = []
+    @Published var transactions: [Transaction] {
+        didSet {
+            DataManager.saveTransactions(transactions)
+        }
+    }
+
+    // MARK: - Initialisation
+    init() {
+        self.transactions = DataManager.loadTransactions()
+        sortTransactions()
+    }
 
     // MARK: - Add Transaction
     func add(_ transaction: Transaction) {
@@ -26,7 +36,9 @@ class TransactionViewModel: ObservableObject {
 
     // MARK: - Update Transaction
     func update(_ transaction: Transaction) {
-        guard let index = transactions.firstIndex(where: { $0.id == transaction.id }) else {
+        guard let index = transactions.firstIndex(
+            where: { $0.id == transaction.id }
+        ) else {
             return
         }
 
@@ -35,18 +47,33 @@ class TransactionViewModel: ObservableObject {
     }
 
     // MARK: - Date Filtering
-    func transactions(from startDate: Date, to endDate: Date) -> [Transaction] {
+    func transactions(
+        from startDate: Date,
+        to endDate: Date
+    ) -> [Transaction] {
+
         transactions
-            .filter { $0.date >= startDate && $0.date <= endDate }
-            .sorted { $0.date > $1.date }
+            .filter {
+                $0.date >= startDate &&
+                $0.date <= endDate
+            }
+            .sorted {
+                $0.date > $1.date
+            }
     }
 
     // MARK: - Expanded Transactions
-    func expandedTransactions(from startDate: Date, to endDate: Date) -> [Transaction] {
+    func expandedTransactions(
+        from startDate: Date,
+        to endDate: Date
+    ) -> [Transaction] {
+
         var expanded: [Transaction] = []
 
         for transaction in transactions {
+
             if let rule = transaction.recurringRule {
+
                 expanded.append(
                     contentsOf: expandRecurringTransaction(
                         transaction,
@@ -55,17 +82,24 @@ class TransactionViewModel: ObservableObject {
                         to: endDate
                     )
                 )
-            } else if transaction.date >= startDate && transaction.date <= endDate {
+
+            } else if transaction.date >= startDate &&
+                        transaction.date <= endDate {
+
                 expanded.append(transaction)
             }
         }
 
-        return expanded.sorted { $0.date > $1.date }
+        return expanded.sorted {
+            $0.date > $1.date
+        }
     }
 
     // MARK: - Private Helpers
     private func sortTransactions() {
-        transactions.sort { $0.date > $1.date }
+        transactions.sort {
+            $0.date > $1.date
+        }
     }
 
     private func expandRecurringTransaction(
@@ -74,18 +108,23 @@ class TransactionViewModel: ObservableObject {
         from startDate: Date,
         to endDate: Date
     ) -> [Transaction] {
+
         guard rule.interval > 0 else {
             return []
         }
 
         var occurrences: [Transaction] = []
-        let calendar = Calendar.current
 
+        let calendar = Calendar.current
         var currentDate = rule.startDate
 
         while currentDate <= endDate {
+
             if currentDate >= startDate {
-                if rule.endDate == nil || currentDate <= rule.endDate! {
+
+                if rule.endDate == nil ||
+                    currentDate <= rule.endDate! {
+
                     let occurrence = Transaction(
                         id: UUID(),
                         title: transaction.title,
@@ -111,7 +150,8 @@ class TransactionViewModel: ObservableObject {
 
             currentDate = nextDate
 
-            if let endDate = rule.endDate, currentDate > endDate {
+            if let endDate = rule.endDate,
+               currentDate > endDate {
                 break
             }
         }
