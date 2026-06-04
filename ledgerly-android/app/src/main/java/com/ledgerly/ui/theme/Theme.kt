@@ -1,46 +1,111 @@
 package com.ledgerly.ui.theme
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
-private val LedgerlyLightColorScheme = lightColorScheme(
-    primary = LedgerlyTurquoise,
+private val LedgerlyDefaultColorScheme = darkColorScheme(
+    primary = LedgerlyBrandTurquoise,
+    onPrimary = LedgerlyBrandNavy,
+
+    secondary = LedgerlyBrandTurquoiseLight,
+    onSecondary = LedgerlyBrandNavy,
+
+    tertiary = LedgerlyBrandTurquoise,
+    onTertiary = LedgerlyBrandNavy,
+
+    background = LedgerlyBrandNavy,
+    onBackground = LedgerlyBrandOffWhite,
+
+    surface = LedgerlyBrandNavy,
+    onSurface = LedgerlyBrandOffWhite,
+
+    surfaceVariant = LedgerlyBrandSlate,
+    onSurfaceVariant = LedgerlyBrandOffWhite,
+
+    primaryContainer = LedgerlyBrandTurquoise,
+    onPrimaryContainer = LedgerlyBrandNavy,
+
+    secondaryContainer = LedgerlyBrandSlate,
+    onSecondaryContainer = LedgerlyBrandOffWhite,
+
+    error = LedgerlyExpenseRed
+)
+
+private val LedgerlyWhiteColorScheme = lightColorScheme(
+    primary = LedgerlyBrandTurquoise,
     onPrimary = Color.White,
 
-    secondary = LedgerlyTurquoiseDark,
+    secondary = LedgerlyBrandSlate,
     onSecondary = Color.White,
 
-    tertiary = LedgerlyTurquoise,
-    onTertiary = Color.White,
+    tertiary = LedgerlyBrandTurquoiseLight,
+    onTertiary = LedgerlyWhiteText,
 
-    background = LedgerlyBackground,
-    onBackground = LedgerlyPrimaryText,
+    background = LedgerlyWhiteBackground,
+    onBackground = LedgerlyWhiteText,
 
-    surface = LedgerlyBackground,
-    onSurface = LedgerlyPrimaryText,
+    surface = LedgerlyWhiteBackground,
+    onSurface = LedgerlyWhiteText,
 
-    surfaceVariant = LedgerlyCardBackground,
-    onSurfaceVariant = LedgerlyPrimaryText,
+    surfaceVariant = LedgerlyWhiteSurface,
+    onSurfaceVariant = LedgerlyWhiteText,
 
-    primaryContainer = LedgerlyTurquoise,
+    primaryContainer = LedgerlyBrandTurquoise,
     onPrimaryContainer = Color.White,
 
-    secondaryContainer = LedgerlyTurquoiseLight,
-    onSecondaryContainer = LedgerlyPrimaryText,
+    secondaryContainer = LedgerlyWhiteSurface,
+    onSecondaryContainer = LedgerlyWhiteText,
+
+    error = LedgerlyExpenseRed
+)
+
+private val LedgerlyDarkColorScheme = darkColorScheme(
+    primary = LedgerlyBrandTurquoise,
+    onPrimary = Color.Black,
+
+    secondary = LedgerlyBrandTurquoiseLight,
+    onSecondary = Color.Black,
+
+    tertiary = LedgerlyBrandTurquoise,
+    onTertiary = Color.Black,
+
+    background = LedgerlyDarkBackground,
+    onBackground = LedgerlyDarkText,
+
+    surface = LedgerlyDarkBackground,
+    onSurface = LedgerlyDarkText,
+
+    surfaceVariant = LedgerlyDarkSurface,
+    onSurfaceVariant = LedgerlyDarkText,
+
+    primaryContainer = LedgerlyBrandTurquoise,
+    onPrimaryContainer = Color.Black,
+
+    secondaryContainer = LedgerlyDarkSurface,
+    onSecondaryContainer = LedgerlyDarkText,
 
     error = LedgerlyExpenseRed
 )
 
 @Composable
 fun LedgerlyTheme(
-    darkTheme: Boolean = false,
-    dynamicColor: Boolean = false,
+    themeName: String = "Default",
     content: @Composable () -> Unit
 ) {
+    val colorScheme =
+        when (themeName) {
+            "White" -> LedgerlyWhiteColorScheme
+            "Dark" -> LedgerlyDarkColorScheme
+            "Turquoise" -> LedgerlyDefaultColorScheme
+            "Light" -> LedgerlyWhiteColorScheme
+            else -> LedgerlyDefaultColorScheme
+        }
+
     MaterialTheme(
-        colorScheme = LedgerlyLightColorScheme,
+        colorScheme = colorScheme,
         typography = Typography,
         content = content
     )

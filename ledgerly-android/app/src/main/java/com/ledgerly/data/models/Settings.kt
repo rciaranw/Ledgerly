@@ -5,5 +5,5 @@ data class Settings(
     val weekStartDay: Int = 1,
     val monthStartDay: Int = 1,
     val carryOverEnabled: Boolean = false,
-    val theme: String = "Turquoise"
+    val theme: String = "Default"
 )

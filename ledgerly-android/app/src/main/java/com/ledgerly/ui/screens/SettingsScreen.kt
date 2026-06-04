@@ -58,7 +58,11 @@ fun SettingsScreen(
         mutableStateOf<Category?>(null)
     }
 
-    val currencies = listOf("GBP", "USD", "EUR")
+    val currencies = listOf(
+        "GBP",
+        "USD",
+        "EUR"
+    )
 
     val weekDays = listOf(
         1 to "Monday",
@@ -73,10 +77,17 @@ fun SettingsScreen(
     val monthDays = (1..31).toList()
 
     val themes = listOf(
-        "Turquoise",
-        "Light",
+        "Default",
+        "White",
         "Dark"
     )
+
+    val selectedTheme =
+        when (settings.theme) {
+            "Turquoise" -> "Default"
+            "Light" -> "White"
+            else -> settings.theme
+        }
 
     categoryToDelete?.let { category ->
         AlertDialog(
@@ -116,9 +127,12 @@ fun SettingsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(
+                rememberScrollState()
+            )
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement =
+            Arrangement.spacedBy(16.dp)
     ) {
         Text(
             text = "Settings",
@@ -130,13 +144,16 @@ fun SettingsScreen(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
+                containerColor =
+                    MaterialTheme.colorScheme.surfaceVariant
             ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            elevation =
+                CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(
                 modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement =
+                    Arrangement.spacedBy(16.dp)
             ) {
                 Text(
                     text = "Preferences",
@@ -158,9 +175,11 @@ fun SettingsScreen(
                             Text("Currency")
                         },
                         trailingIcon = {
-                            ExposedDropdownMenuDefaults.TrailingIcon(
-                                expanded = currencyExpanded
-                            )
+                            ExposedDropdownMenuDefaults
+                                .TrailingIcon(
+                                    expanded =
+                                        currencyExpanded
+                                )
                         },
                         modifier = Modifier
                             .menuAnchor()
@@ -179,7 +198,9 @@ fun SettingsScreen(
                                     Text(currency)
                                 },
                                 onClick = {
-                                    settingsViewModel.setCurrency(currency)
+                                    settingsViewModel
+                                        .setCurrency(currency)
+
                                     currencyExpanded = false
                                 }
                             )
@@ -190,12 +211,14 @@ fun SettingsScreen(
                 ExposedDropdownMenuBox(
                     expanded = weekStartExpanded,
                     onExpandedChange = {
-                        weekStartExpanded = !weekStartExpanded
+                        weekStartExpanded =
+                            !weekStartExpanded
                     }
                 ) {
                     val selectedDayName =
                         weekDays.firstOrNull {
-                            it.first == settings.weekStartDay
+                            it.first ==
+                                settings.weekStartDay
                         }?.second ?: "Monday"
 
                     OutlinedTextField(
@@ -206,9 +229,11 @@ fun SettingsScreen(
                             Text("Week Start Day")
                         },
                         trailingIcon = {
-                            ExposedDropdownMenuDefaults.TrailingIcon(
-                                expanded = weekStartExpanded
-                            )
+                            ExposedDropdownMenuDefaults
+                                .TrailingIcon(
+                                    expanded =
+                                        weekStartExpanded
+                                )
                         },
                         modifier = Modifier
                             .menuAnchor()
@@ -227,7 +252,11 @@ fun SettingsScreen(
                                     Text(day.second)
                                 },
                                 onClick = {
-                                    settingsViewModel.setWeekStartDay(day.first)
+                                    settingsViewModel
+                                        .setWeekStartDay(
+                                            day.first
+                                        )
+
                                     weekStartExpanded = false
                                 }
                             )
@@ -238,20 +267,24 @@ fun SettingsScreen(
                 ExposedDropdownMenuBox(
                     expanded = monthStartExpanded,
                     onExpandedChange = {
-                        monthStartExpanded = !monthStartExpanded
+                        monthStartExpanded =
+                            !monthStartExpanded
                     }
                 ) {
                     OutlinedTextField(
-                        value = settings.monthStartDay.toString(),
+                        value =
+                            settings.monthStartDay.toString(),
                         onValueChange = {},
                         readOnly = true,
                         label = {
                             Text("Month Start Day")
                         },
                         trailingIcon = {
-                            ExposedDropdownMenuDefaults.TrailingIcon(
-                                expanded = monthStartExpanded
-                            )
+                            ExposedDropdownMenuDefaults
+                                .TrailingIcon(
+                                    expanded =
+                                        monthStartExpanded
+                                )
                         },
                         modifier = Modifier
                             .menuAnchor()
@@ -270,7 +303,9 @@ fun SettingsScreen(
                                     Text(day.toString())
                                 },
                                 onClick = {
-                                    settingsViewModel.setMonthStartDay(day)
+                                    settingsViewModel
+                                        .setMonthStartDay(day)
+
                                     monthStartExpanded = false
                                 }
                             )
@@ -285,16 +320,18 @@ fun SettingsScreen(
                     }
                 ) {
                     OutlinedTextField(
-                        value = settings.theme,
+                        value = selectedTheme,
                         onValueChange = {},
                         readOnly = true,
                         label = {
                             Text("Theme")
                         },
                         trailingIcon = {
-                            ExposedDropdownMenuDefaults.TrailingIcon(
-                                expanded = themeExpanded
-                            )
+                            ExposedDropdownMenuDefaults
+                                .TrailingIcon(
+                                    expanded =
+                                        themeExpanded
+                                )
                         },
                         modifier = Modifier
                             .menuAnchor()
@@ -313,7 +350,9 @@ fun SettingsScreen(
                                     Text(theme)
                                 },
                                 onClick = {
-                                    settingsViewModel.setTheme(theme)
+                                    settingsViewModel
+                                        .setTheme(theme)
+
                                     themeExpanded = false
                                 }
                             )
@@ -323,120 +362,49 @@ fun SettingsScreen(
             }
         }
 
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        SettingsActionCard(
+            title = "Carry Over Budget",
+            description =
+                "Carry remaining budget into the next period"
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(
-                        text = "Carry Over Budget",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-
-                    Text(
-                        text = "Carry remaining budget into the next period",
-                        style = MaterialTheme.typography.bodySmall
-                    )
+            Switch(
+                checked = settings.carryOverEnabled,
+                onCheckedChange = {
+                    settingsViewModel
+                        .setCarryOverEnabled(it)
                 }
-
-                Switch(
-                    checked = settings.carryOverEnabled,
-                    onCheckedChange = {
-                        settingsViewModel.setCarryOverEnabled(it)
-                    }
-                )
-            }
+            )
         }
 
+        SettingsButtonCard(
+            title = "Recurring Transactions",
+            description =
+                "Manage repeating income, bills and subscriptions",
+            buttonText = "Manage Recurring Transactions",
+            onClick = onViewRecurringTransactions
+        )
+
+        SettingsButtonCard(
+            title = "Data Export",
+            description = "Export all transactions as CSV.",
+            buttonText = "Export Data",
+            onClick = onExport
+        )
+
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
+                containerColor =
+                    MaterialTheme.colorScheme.surfaceVariant
             ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            elevation =
+                CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(
                 modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Text(
-                    text = "Recurring Transactions",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Text(
-                    text = "Manage repeating income, bills and subscriptions",
-                    style = MaterialTheme.typography.bodySmall
-                )
-
-                Button(
-                    onClick = onViewRecurringTransactions,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Manage Recurring Transactions")
-                }
-            }
-        }
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Text(
-                    text = "Data Export",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Text(
-                    text = "Export all transactions as CSV.",
-                    style = MaterialTheme.typography.bodySmall
-                )
-
-                Button(
-                    onClick = onExport,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Export Data")
-                }
-            }
-        }
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement =
+                    Arrangement.spacedBy(12.dp)
             ) {
                 Text(
                     text = "Categories",
@@ -447,8 +415,10 @@ fun SettingsScreen(
                 allCategories.forEach { category ->
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        horizontalArrangement =
+                            Arrangement.SpaceBetween,
+                        verticalAlignment =
+                            Alignment.CenterVertically
                     ) {
                         Column(
                             modifier = Modifier.weight(1f)
@@ -464,7 +434,8 @@ fun SettingsScreen(
                                 } else {
                                     "Custom category"
                                 },
-                                style = MaterialTheme.typography.bodySmall
+                                style =
+                                    MaterialTheme.typography.bodySmall
                             )
                         }
 
@@ -486,6 +457,94 @@ fun SettingsScreen(
                 ) {
                     Text("Add Category")
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SettingsActionCard(
+    title: String,
+    description: String,
+    action: @Composable () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor =
+                MaterialTheme.colorScheme.surfaceVariant
+        ),
+        elevation =
+            CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement =
+                Arrangement.SpaceBetween,
+            verticalAlignment =
+                Alignment.CenterVertically
+        ) {
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
+            action()
+        }
+    }
+}
+
+@Composable
+private fun SettingsButtonCard(
+    title: String,
+    description: String,
+    buttonText: String,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor =
+                MaterialTheme.colorScheme.surfaceVariant
+        ),
+        elevation =
+            CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement =
+                Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodySmall
+            )
+
+            Button(
+                onClick = onClick,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(buttonText)
             }
         }
     }

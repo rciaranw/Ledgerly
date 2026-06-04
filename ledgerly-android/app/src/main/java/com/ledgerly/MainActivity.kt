@@ -1,5 +1,6 @@
 package com.ledgerly
 
+import android.app.Application
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -10,9 +11,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ledgerly.ui.navigation.LedgerlyNavigation
 import com.ledgerly.ui.screens.BrandedSplashScreen
 import com.ledgerly.ui.theme.LedgerlyTheme
+import com.ledgerly.viewmodel.SettingsViewModel
 import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() {
@@ -25,7 +29,21 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            LedgerlyTheme {
+            val application =
+                applicationContext as Application
+
+            val settingsViewModel: SettingsViewModel =
+                viewModel(
+                    factory = ViewModelProvider
+                        .AndroidViewModelFactory
+                        .getInstance(application)
+                )
+
+            val settings = settingsViewModel.settings
+
+            LedgerlyTheme(
+                themeName = settings.theme
+            ) {
                 var showSplash by remember {
                     mutableStateOf(true)
                 }
