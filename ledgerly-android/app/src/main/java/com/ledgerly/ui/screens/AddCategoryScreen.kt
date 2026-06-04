@@ -2,15 +2,19 @@ package com.ledgerly.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -20,9 +24,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.ledgerly.ui.components.CategoryIcon
 import com.ledgerly.viewmodel.CategoryViewModel
 
 @Composable
@@ -43,12 +49,35 @@ fun AddCategoryScreen(
         mutableStateOf<String?>(null)
     }
 
+    val availableIcons = listOf(
+        "label" to "General",
+        "salary" to "Salary",
+        "wallet" to "Wallet",
+        "food" to "Food",
+        "restaurant" to "Restaurant",
+        "coffee" to "Coffee",
+        "shopping" to "Shopping",
+        "gift" to "Gift",
+        "travel" to "Travel",
+        "car" to "Car",
+        "transport" to "Transport",
+        "home" to "Home",
+        "bills" to "Bills",
+        "health" to "Health",
+        "entertainment" to "Entertainment",
+        "pets" to "Pets",
+        "savings" to "Savings"
+    )
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(
+                rememberScrollState()
+            )
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement =
+            Arrangement.spacedBy(16.dp)
     ) {
         Text(
             text = "Add Category",
@@ -60,13 +89,16 @@ fun AddCategoryScreen(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
+                containerColor =
+                    MaterialTheme.colorScheme.surfaceVariant
             ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            elevation =
+                CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(
                 modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement =
+                    Arrangement.spacedBy(16.dp)
             ) {
                 OutlinedTextField(
                     value = name,
@@ -80,21 +112,46 @@ fun AddCategoryScreen(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                OutlinedTextField(
-                    value = icon,
-                    onValueChange = {
-                        icon = it
-                    },
-                    label = {
-                        Text("Icon Name")
-                    },
-                    modifier = Modifier.fillMaxWidth()
+                Text(
+                    text = "Icon",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
                 )
 
-                Text(
-                    text = "For now, use simple icon names like label, pets, coffee, car, flight, restaurant.",
-                    style = MaterialTheme.typography.bodySmall
-                )
+                FlowRow(
+                    horizontalArrangement =
+                        Arrangement.spacedBy(8.dp),
+                    verticalArrangement =
+                        Arrangement.spacedBy(8.dp)
+                ) {
+                    availableIcons.forEach { option ->
+                        val iconName = option.first
+                        val label = option.second
+
+                        FilterChip(
+                            selected = icon == iconName,
+                            onClick = {
+                                icon = iconName
+                            },
+                            label = {
+                                Row(
+                                    verticalAlignment =
+                                        Alignment.CenterVertically,
+                                    horizontalArrangement =
+                                        Arrangement.spacedBy(6.dp)
+                                ) {
+                                    CategoryIcon(
+                                        iconName = iconName,
+                                        contentDescription = label,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+
+                                    Text(label)
+                                }
+                            }
+                        )
+                    }
+                }
 
                 validationMessage?.let { message ->
                     Text(
@@ -108,13 +165,14 @@ fun AddCategoryScreen(
                         val cleanName = name.trim()
 
                         if (cleanName.isBlank()) {
-                            validationMessage = "Enter a category name."
+                            validationMessage =
+                                "Enter a category name."
                             return@Button
                         }
 
                         categoryViewModel.addCategory(
                             name = cleanName,
-                            icon = icon.ifBlank { "label" }
+                            icon = icon
                         )
 
                         onSaved()

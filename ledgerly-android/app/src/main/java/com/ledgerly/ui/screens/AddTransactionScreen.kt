@@ -7,7 +7,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -22,6 +24,7 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
@@ -30,11 +33,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ledgerly.data.models.DefaultCategories
 import com.ledgerly.data.models.Transaction
+import com.ledgerly.ui.components.CategoryIcon
 import com.ledgerly.viewmodel.BudgetViewModel
 import com.ledgerly.viewmodel.CategoryViewModel
 import com.ledgerly.viewmodel.TransactionViewModel
@@ -52,17 +57,41 @@ fun AddTransactionScreen(
     onSaved: () -> Unit,
     onCancel: () -> Unit
 ) {
-    var isIncome by remember { mutableStateOf(false) }
-    var selectedCategory by remember { mutableStateOf(DefaultCategories.fallback) }
+    var isIncome by remember {
+        mutableStateOf(false)
+    }
 
-    var title by remember { mutableStateOf("") }
-    var notes by remember { mutableStateOf("") }
-    var amountText by remember { mutableStateOf("") }
-    var selectedDate by remember { mutableStateOf(LocalDate.now()) }
+    var selectedCategory by remember {
+        mutableStateOf(DefaultCategories.fallback)
+    }
 
-    var categoryExpanded by remember { mutableStateOf(false) }
-    var validationMessage by remember { mutableStateOf<String?>(null) }
-    var showDatePicker by remember { mutableStateOf(false) }
+    var title by remember {
+        mutableStateOf("")
+    }
+
+    var notes by remember {
+        mutableStateOf("")
+    }
+
+    var amountText by remember {
+        mutableStateOf("")
+    }
+
+    var selectedDate by remember {
+        mutableStateOf(LocalDate.now())
+    }
+
+    var categoryExpanded by remember {
+        mutableStateOf(false)
+    }
+
+    var validationMessage by remember {
+        mutableStateOf<String?>(null)
+    }
+
+    var showDatePicker by remember {
+        mutableStateOf(false)
+    }
 
     val categories = categoryViewModel.allCategories
 
@@ -76,12 +105,15 @@ fun AddTransactionScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        datePickerState.selectedDateMillis?.let { millis ->
-                            selectedDate = Instant
-                                .ofEpochMilli(millis)
-                                .atZone(ZoneId.systemDefault())
-                                .toLocalDate()
-                        }
+                        datePickerState.selectedDateMillis
+                            ?.let { millis ->
+                                selectedDate = Instant
+                                    .ofEpochMilli(millis)
+                                    .atZone(
+                                        ZoneId.systemDefault()
+                                    )
+                                    .toLocalDate()
+                            }
 
                         showDatePicker = false
                     }
@@ -108,9 +140,12 @@ fun AddTransactionScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(
+                rememberScrollState()
+            )
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement =
+            Arrangement.spacedBy(16.dp)
     ) {
 
         Text(
@@ -123,35 +158,47 @@ fun AddTransactionScreen(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
+                containerColor =
+                    MaterialTheme.colorScheme.surfaceVariant
             )
         ) {
 
             Column(
                 modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement =
+                    Arrangement.spacedBy(16.dp)
             ) {
 
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement =
+                        Arrangement.spacedBy(12.dp)
                 ) {
                     FilterChip(
                         selected = !isIncome,
-                        onClick = { isIncome = false },
-                        label = { Text("Expense") }
+                        onClick = {
+                            isIncome = false
+                        },
+                        label = {
+                            Text("Expense")
+                        }
                     )
 
                     FilterChip(
                         selected = isIncome,
-                        onClick = { isIncome = true },
-                        label = { Text("Income") }
+                        onClick = {
+                            isIncome = true
+                        },
+                        label = {
+                            Text("Income")
+                        }
                     )
                 }
 
                 ExposedDropdownMenuBox(
                     expanded = categoryExpanded,
                     onExpandedChange = {
-                        categoryExpanded = !categoryExpanded
+                        categoryExpanded =
+                            !categoryExpanded
                     }
                 ) {
 
@@ -159,11 +206,24 @@ fun AddTransactionScreen(
                         value = selectedCategory.name,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text("Category") },
-                        trailingIcon = {
-                            ExposedDropdownMenuDefaults.TrailingIcon(
-                                expanded = categoryExpanded
+                        label = {
+                            Text("Category")
+                        },
+                        leadingIcon = {
+                            CategoryIcon(
+                                iconName =
+                                    selectedCategory.systemIcon,
+                                contentDescription =
+                                    selectedCategory.name,
+                                modifier = Modifier.size(22.dp)
                             )
+                        },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults
+                                .TrailingIcon(
+                                    expanded =
+                                        categoryExpanded
+                                )
                         },
                         modifier = Modifier
                             .menuAnchor()
@@ -179,7 +239,44 @@ fun AddTransactionScreen(
                         categories.forEach { category ->
                             DropdownMenuItem(
                                 text = {
-                                    Text(category.name)
+                                    Row(
+                                        verticalAlignment =
+                                            Alignment.CenterVertically,
+                                        horizontalArrangement =
+                                            Arrangement.spacedBy(
+                                                10.dp
+                                            )
+                                    ) {
+                                        Surface(
+                                            modifier =
+                                                Modifier.size(32.dp),
+                                            shape = CircleShape,
+                                            color =
+                                                MaterialTheme
+                                                    .colorScheme
+                                                    .background
+                                        ) {
+                                            Row(
+                                                horizontalArrangement =
+                                                    Arrangement.Center,
+                                                verticalAlignment =
+                                                    Alignment.CenterVertically
+                                            ) {
+                                                CategoryIcon(
+                                                    iconName =
+                                                        category.systemIcon,
+                                                    contentDescription =
+                                                        category.name,
+                                                    modifier =
+                                                        Modifier.size(
+                                                            20.dp
+                                                        )
+                                                )
+                                            }
+                                        }
+
+                                        Text(category.name)
+                                    }
                                 },
                                 onClick = {
                                     selectedCategory = category
@@ -251,7 +348,8 @@ fun AddTransactionScreen(
 
                 Button(
                     onClick = {
-                        val amount = amountText.toDoubleOrNull()
+                        val amount =
+                            amountText.toDoubleOrNull()
 
                         if (amount == null || amount <= 0.0) {
                             validationMessage =
@@ -271,11 +369,13 @@ fun AddTransactionScreen(
                             isIncome = isIncome
                         )
 
-                        transactionViewModel.addTransaction(transaction)
+                        transactionViewModel
+                            .addTransaction(transaction)
 
-                        budgetViewModel.refreshCurrentMonthBudgets(
-                            transactionViewModel.transactions
-                        )
+                        budgetViewModel
+                            .refreshCurrentMonthBudgets(
+                                transactionViewModel.transactions
+                            )
 
                         onSaved()
                     },
