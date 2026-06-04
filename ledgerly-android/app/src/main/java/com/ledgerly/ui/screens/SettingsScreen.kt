@@ -1,5 +1,7 @@
 package com.ledgerly.ui.screens
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -32,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ledgerly.data.models.Category
+import com.ledgerly.ui.theme.LedgerlyExpenseRed
 import com.ledgerly.viewmodel.BudgetViewModel
 import com.ledgerly.viewmodel.CategoryViewModel
 import com.ledgerly.viewmodel.SettingsViewModel
@@ -47,12 +50,26 @@ fun SettingsScreen(
     onExport: () -> Unit
 ) {
     val settings = settingsViewModel.settings
-    val allCategories = categoryViewModel.allCategories
+    val customCategories =
+        categoryViewModel.allCategories.filter {
+            !it.isDefault
+        }
 
-    var currencyExpanded by remember { mutableStateOf(false) }
-    var weekStartExpanded by remember { mutableStateOf(false) }
-    var monthStartExpanded by remember { mutableStateOf(false) }
-    var themeExpanded by remember { mutableStateOf(false) }
+    var currencyExpanded by remember {
+        mutableStateOf(false)
+    }
+
+    var weekStartExpanded by remember {
+        mutableStateOf(false)
+    }
+
+    var monthStartExpanded by remember {
+        mutableStateOf(false)
+    }
+
+    var biometricLockEnabled by remember {
+        mutableStateOf(false)
+    }
 
     var categoryToDelete by remember {
         mutableStateOf<Category?>(null)
@@ -75,12 +92,6 @@ fun SettingsScreen(
     )
 
     val monthDays = (1..31).toList()
-
-    val themes = listOf(
-        "Default",
-        "White",
-        "Dark"
-    )
 
     val selectedTheme =
         when (settings.theme) {
@@ -109,7 +120,10 @@ fun SettingsScreen(
                         categoryToDelete = null
                     }
                 ) {
-                    Text("Delete")
+                    Text(
+                        text = "Delete",
+                        color = LedgerlyExpenseRed
+                    )
                 }
             },
             dismissButton = {
@@ -118,7 +132,10 @@ fun SettingsScreen(
                         categoryToDelete = null
                     }
                 ) {
-                    Text("Cancel")
+                    Text(
+                        text = "Cancel",
+                        color = LedgerlyExpenseRed
+                    )
                 }
             }
         )
@@ -177,8 +194,7 @@ fun SettingsScreen(
                         trailingIcon = {
                             ExposedDropdownMenuDefaults
                                 .TrailingIcon(
-                                    expanded =
-                                        currencyExpanded
+                                    expanded = currencyExpanded
                                 )
                         },
                         modifier = Modifier
@@ -198,8 +214,9 @@ fun SettingsScreen(
                                     Text(currency)
                                 },
                                 onClick = {
-                                    settingsViewModel
-                                        .setCurrency(currency)
+                                    settingsViewModel.setCurrency(
+                                        currency
+                                    )
 
                                     currencyExpanded = false
                                 }
@@ -312,53 +329,56 @@ fun SettingsScreen(
                         }
                     }
                 }
+            }
+        }
 
-                ExposedDropdownMenuBox(
-                    expanded = themeExpanded,
-                    onExpandedChange = {
-                        themeExpanded = !themeExpanded
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(
+                containerColor =
+                    MaterialTheme.colorScheme.surfaceVariant
+            ),
+            elevation =
+                CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement =
+                    Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = "Theme",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+
+                ThemeOptionCard(
+                    title = "Ledgerly Blue",
+                    description = "Default dark navy and turquoise branding",
+                    selected = selectedTheme == "Default",
+                    onClick = {
+                        settingsViewModel.setTheme("Default")
                     }
-                ) {
-                    OutlinedTextField(
-                        value = selectedTheme,
-                        onValueChange = {},
-                        readOnly = true,
-                        label = {
-                            Text("Theme")
-                        },
-                        trailingIcon = {
-                            ExposedDropdownMenuDefaults
-                                .TrailingIcon(
-                                    expanded =
-                                        themeExpanded
-                                )
-                        },
-                        modifier = Modifier
-                            .menuAnchor()
-                            .fillMaxWidth()
-                    )
+                )
 
-                    ExposedDropdownMenu(
-                        expanded = themeExpanded,
-                        onDismissRequest = {
-                            themeExpanded = false
-                        }
-                    ) {
-                        themes.forEach { theme ->
-                            DropdownMenuItem(
-                                text = {
-                                    Text(theme)
-                                },
-                                onClick = {
-                                    settingsViewModel
-                                        .setTheme(theme)
-
-                                    themeExpanded = false
-                                }
-                            )
-                        }
+                ThemeOptionCard(
+                    title = "White",
+                    description = "Clean light mode with bright surfaces",
+                    selected = selectedTheme == "White",
+                    onClick = {
+                        settingsViewModel.setTheme("White")
                     }
-                }
+                )
+
+                ThemeOptionCard(
+                    title = "Dark",
+                    description = "Deep black theme with turquoise accents",
+                    selected = selectedTheme == "Dark",
+                    onClick = {
+                        settingsViewModel.setTheme("Dark")
+                    }
+                )
             }
         }
 
@@ -376,11 +396,24 @@ fun SettingsScreen(
             )
         }
 
+        SettingsActionCard(
+            title = "Biometric Lock",
+            description =
+                "Use Face ID, fingerprint or device security to protect Ledgerly"
+        ) {
+            Switch(
+                checked = biometricLockEnabled,
+                onCheckedChange = {
+                    biometricLockEnabled = it
+                }
+            )
+        }
+
         SettingsButtonCard(
             title = "Recurring Transactions",
             description =
                 "Manage repeating income, bills and subscriptions",
-            buttonText = "Manage Recurring Transactions",
+            buttonText = "Manage Recurring",
             onClick = onViewRecurringTransactions
         )
 
@@ -407,45 +440,58 @@ fun SettingsScreen(
                     Arrangement.spacedBy(12.dp)
             ) {
                 Text(
-                    text = "Categories",
+                    text = "Custom Categories",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
 
-                allCategories.forEach { category ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement =
-                            Arrangement.SpaceBetween,
-                        verticalAlignment =
-                            Alignment.CenterVertically
-                    ) {
-                        Column(
-                            modifier = Modifier.weight(1f)
+                if (customCategories.isEmpty()) {
+                    Text(
+                        text = "No custom categories yet.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium
+                    )
+
+                    Text(
+                        text = "Create custom categories to organise transactions beyond the default options.",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                } else {
+                    customCategories.forEach { category ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement =
+                                Arrangement.SpaceBetween,
+                            verticalAlignment =
+                                Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = category.name,
-                                fontWeight = FontWeight.Medium
-                            )
+                            Column(
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text(
+                                    text = category.name,
+                                    fontWeight =
+                                        FontWeight.Medium
+                                )
 
-                            Text(
-                                text = if (category.isDefault) {
-                                    "Default category"
-                                } else {
-                                    "Custom category"
-                                },
-                                style =
-                                    MaterialTheme.typography.bodySmall
-                            )
-                        }
+                                Text(
+                                    text = "Custom category",
+                                    style =
+                                        MaterialTheme
+                                            .typography
+                                            .bodySmall
+                                )
+                            }
 
-                        if (!category.isDefault) {
                             TextButton(
                                 onClick = {
                                     categoryToDelete = category
                                 }
                             ) {
-                                Text("Delete")
+                                Text(
+                                    text = "Delete",
+                                    color = LedgerlyExpenseRed
+                                )
                             }
                         }
                     }
@@ -458,6 +504,105 @@ fun SettingsScreen(
                     Text("Add Category")
                 }
             }
+        }
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(
+                containerColor =
+                    MaterialTheme.colorScheme.surfaceVariant
+            ),
+            elevation =
+                CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement =
+                    Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = "App Info",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+
+                InfoRow(
+                    label = "Version",
+                    value = "1.0.0"
+                )
+
+                InfoRow(
+                    label = "Build",
+                    value = "1"
+                )
+
+                TextButton(
+                    onClick = {
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Contact Support")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ThemeOptionCard(
+    title: String,
+    description: String,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable {
+                onClick()
+            },
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor =
+                if (selected) {
+                    MaterialTheme.colorScheme.primary.copy(
+                        alpha = 0.14f
+                    )
+                } else {
+                    MaterialTheme.colorScheme.background
+                }
+        ),
+        border =
+            if (selected) {
+                BorderStroke(
+                    width = 2.dp,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            } else {
+                BorderStroke(
+                    width = 1.dp,
+                    color =
+                        MaterialTheme.colorScheme.outline.copy(
+                            alpha = 0.35f
+                        )
+                )
+            }
+    ) {
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement =
+                Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = title,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodySmall
+            )
         }
     }
 }
@@ -547,5 +692,29 @@ private fun SettingsButtonCard(
                 Text(buttonText)
             }
         }
+    }
+}
+
+@Composable
+private fun InfoRow(
+    label: String,
+    value: String
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement =
+            Arrangement.SpaceBetween,
+        verticalAlignment =
+            Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium
+        )
+
+        Text(
+            text = value,
+            fontWeight = FontWeight.Bold
+        )
     }
 }
