@@ -35,6 +35,7 @@ import com.ledgerly.ui.screens.HomeScreen
 import com.ledgerly.ui.screens.RecurringTransactionsScreen
 import com.ledgerly.ui.screens.SettingsScreen
 import com.ledgerly.ui.screens.TransactionsScreen
+import com.ledgerly.ui.screens.ExportScreen
 import com.ledgerly.viewmodel.BudgetViewModel
 import com.ledgerly.viewmodel.CategoryViewModel
 import com.ledgerly.viewmodel.RecurringTransactionViewModel
@@ -58,6 +59,9 @@ sealed class LedgerlyTab(
 
     data object AddCategory :
         LedgerlyTab("add_category", "Add Category")
+
+    data object Export :
+    LedgerlyTab("export", "Export")
 
     data object AddRecurringTransaction :
         LedgerlyTab("add_recurring_transaction", "Add Recurring")
@@ -278,6 +282,12 @@ fun LedgerlyNavigation() {
                     }
                 )
             }
+
+            composable(LedgerlyTab.Export.route) {
+    ExportScreen(
+        transactionViewModel = transactionViewModel
+    )
+}
 
             composable(LedgerlyTab.AddTransaction.route) {
                 AddTransactionScreen(

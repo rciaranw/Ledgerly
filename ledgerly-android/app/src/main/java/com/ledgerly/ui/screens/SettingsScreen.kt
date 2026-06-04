@@ -43,7 +43,8 @@ fun SettingsScreen(
     settingsViewModel: SettingsViewModel,
     categoryViewModel: CategoryViewModel,
     onAddCategory: () -> Unit,
-    onViewRecurringTransactions: () -> Unit
+    onViewRecurringTransactions: () -> Unit,
+    onExport: () -> Unit
 ) {
     val settings = settingsViewModel.settings
     val allCategories = categoryViewModel.allCategories
@@ -362,36 +363,68 @@ fun SettingsScreen(
         }
 
         Card(
-    modifier = Modifier.fillMaxWidth(),
-    shape = RoundedCornerShape(20.dp),
-    colors = CardDefaults.cardColors(
-        containerColor = MaterialTheme.colorScheme.surfaceVariant
-    ),
-    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-) {
-    Column(
-        modifier = Modifier.padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Text(
-            text = "Recurring Transactions",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold
-        )
-
-        Text(
-            text = "Manage repeating income, bills and subscriptions",
-            style = MaterialTheme.typography.bodySmall
-        )
-
-        Button(
-            onClick = onViewRecurringTransactions,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
-            Text("Manage Recurring Transactions")
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = "Recurring Transactions",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Text(
+                    text = "Manage repeating income, bills and subscriptions",
+                    style = MaterialTheme.typography.bodySmall
+                )
+
+                Button(
+                    onClick = onViewRecurringTransactions,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Manage Recurring Transactions")
+                }
+            }
         }
-    }
-}
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = "Data Export",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Text(
+                    text = "Export all transactions as CSV.",
+                    style = MaterialTheme.typography.bodySmall
+                )
+
+                Button(
+                    onClick = onExport,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Export Data")
+                }
+            }
+        }
 
         Card(
             modifier = Modifier.fillMaxWidth(),
