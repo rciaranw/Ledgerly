@@ -42,81 +42,108 @@ fun TransactionCard(
             }
         }
 
+    val formattedAmount =
+        CurrencyFormatter.format(
+            amount = transaction.amount,
+            currencyCode = currencyCode
+        )
+
+    val displayAmount =
+        if (transaction.isIncome) {
+            formattedAmount
+        } else {
+            "-$formattedAmount"
+        }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .then(clickableModifier),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+            containerColor =
+                MaterialTheme.colorScheme.surfaceVariant
         ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 2.dp
-        )
+        elevation =
+            CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .padding(
+                    horizontal = 16.dp,
+                    vertical = 18.dp
+                ),
+            horizontalArrangement =
+                Arrangement.SpaceBetween,
+            verticalAlignment =
+                Alignment.CenterVertically
         ) {
             Row(
                 modifier = Modifier.weight(1f),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment =
+                    Alignment.CenterVertically
             ) {
                 Surface(
-                    modifier = Modifier.size(42.dp),
+                    modifier = Modifier.size(46.dp),
                     shape = CircleShape,
                     color = MaterialTheme.colorScheme.background
                 ) {
                     Row(
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
+                        horizontalArrangement =
+                            Arrangement.Center,
+                        verticalAlignment =
+                            Alignment.CenterVertically
                     ) {
                         CategoryIcon(
-                            iconName = transaction.category.systemIcon,
-                            contentDescription = transaction.category.name,
-                            modifier = Modifier.size(24.dp)
+                            iconName =
+                                transaction.category.systemIcon,
+                            contentDescription =
+                                transaction.category.name,
+                            modifier = Modifier.size(25.dp)
                         )
                     }
                 }
 
                 Spacer(
-                    modifier = Modifier.width(12.dp)
+                    modifier = Modifier.width(14.dp)
                 )
 
-                Column {
+                Column(
+                    verticalArrangement =
+                        Arrangement.spacedBy(3.dp)
+                ) {
                     Text(
                         text = transaction.title,
-                        style = MaterialTheme.typography.titleMedium,
+                        style =
+                            MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
 
                     Text(
                         text = transaction.category.name,
-                        style = MaterialTheme.typography.bodyMedium
+                        style =
+                            MaterialTheme.typography.bodyMedium
                     )
 
                     Text(
                         text = DateHelper.formatDate(
                             transaction.date
                         ),
-                        style = MaterialTheme.typography.bodySmall
+                        style =
+                            MaterialTheme.typography.bodySmall
                     )
                 }
             }
 
             Text(
-                text = CurrencyFormatter.format(
-                    amount = transaction.amount,
-                    currencyCode = currencyCode
-                ),
+                text = displayAmount,
                 color = if (transaction.isIncome) {
                     LedgerlyIncomeGreen
                 } else {
                     LedgerlyExpenseRed
                 },
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
         }

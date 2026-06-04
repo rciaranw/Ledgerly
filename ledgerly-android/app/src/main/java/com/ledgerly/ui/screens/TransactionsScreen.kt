@@ -1,5 +1,6 @@
 package com.ledgerly.ui.screens
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,9 +9,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,7 +23,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.ledgerly.ui.components.TransactionCard
 import com.ledgerly.viewmodel.CategoryViewModel
@@ -38,6 +44,8 @@ fun TransactionsScreen(
     val transactions = transactionViewModel.transactions
     val settings = settingsViewModel.settings
 
+    val focusManager = LocalFocusManager.current
+
     var searchText by remember {
         mutableStateOf("")
     }
@@ -46,37 +54,54 @@ fun TransactionsScreen(
         mutableStateOf(TransactionFilter.All)
     }
 
-    val filteredTransactions = transactions
-        .filter { transaction ->
-            when (selectedFilter) {
-                TransactionFilter.All -> true
-                TransactionFilter.Income -> transaction.isIncome
-                TransactionFilter.Expense -> !transaction.isIncome
+    val filteredTransactions =
+        transactions
+            .filter { transaction ->
+                when (selectedFilter) {
+                    TransactionFilter.All -> true
+                    TransactionFilter.Income ->
+                        transaction.isIncome
+                    TransactionFilter.Expense ->
+                        !transaction.isIncome
+                }
             }
-        }
-        .filter { transaction ->
-            val query = searchText.trim()
+            .filter { transaction ->
+                val query = searchText.trim()
 
-            if (query.isBlank()) {
-                true
-            } else {
-                transaction.title.contains(
-                    query,
-                    ignoreCase = true
-                ) ||
-                    transaction.category.name.contains(
+                if (query.isBlank()) {
+                    true
+                } else {
+                    val amountText =
+                        transaction.amount.toString()
+
+                    val formattedDate =
+                        transaction.date.toString()
+
+                    transaction.title.contains(
                         query,
                         ignoreCase = true
                     ) ||
-                    transaction.notes.contains(
-                        query,
-                        ignoreCase = true
-                    )
+                        transaction.category.name.contains(
+                            query,
+                            ignoreCase = true
+                        ) ||
+                        transaction.notes.contains(
+                            query,
+                            ignoreCase = true
+                        ) ||
+                        amountText.contains(
+                            query,
+                            ignoreCase = true
+                        ) ||
+                        formattedDate.contains(
+                            query,
+                            ignoreCase = true
+                        )
+                }
             }
-        }
-        .sortedByDescending {
-            it.date
-        }
+            .sortedByDescending {
+                it.date
+            }
 
     Box(
         modifier = Modifier
@@ -92,32 +117,50 @@ fun TransactionsScreen(
                 fontWeight = FontWeight.Bold
             )
 
-            Button(
-                onClick = onAddTransaction,
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 16.dp)
+                    .padding(top = 16.dp),
+                horizontalArrangement =
+                    Arrangement.spacedBy(10.dp)
             ) {
-                Text("Add Transaction")
-            }
+                Button(
+                    onClick = onAddTransaction,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Add")
+                }
 
-            Button(
-                onClick = onAddRecurringTransaction,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp)
-            ) {
-                Text("Add Recurring Transaction")
+                OutlinedButton(
+                    onClick = onAddRecurringTransaction,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Recurring")
+                }
             }
 
             OutlinedTextField(
                 value = searchText,
                 onValueChange = {
-                    searchText = it
+                    searchText = it.replace(
+                        "\n",
+                        ""
+                    )
                 },
+                singleLine = true,
                 label = {
                     Text("Search transactions")
                 },
+                keyboardOptions =
+                    KeyboardOptions(
+                        imeAction = ImeAction.Search
+                    ),
+                keyboardActions =
+                    KeyboardActions(
+                        onSearch = {
+                            focusManager.clearFocus()
+                        }
+                    ),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 16.dp)
@@ -128,12 +171,15 @@ fun TransactionsScreen(
                     .fillMaxWidth()
                     .padding(top = 12.dp),
                 horizontalArrangement =
-                    androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)
+                    Arrangement.spacedBy(8.dp)
             ) {
                 FilterChip(
-                    selected = selectedFilter == TransactionFilter.All,
+                    selected =
+                        selectedFilter ==
+                            TransactionFilter.All,
                     onClick = {
-                        selectedFilter = TransactionFilter.All
+                        selectedFilter =
+                            TransactionFilter.All
                     },
                     label = {
                         Text("All")
@@ -141,9 +187,12 @@ fun TransactionsScreen(
                 )
 
                 FilterChip(
-                    selected = selectedFilter == TransactionFilter.Expense,
+                    selected =
+                        selectedFilter ==
+                            TransactionFilter.Expense,
                     onClick = {
-                        selectedFilter = TransactionFilter.Expense
+                        selectedFilter =
+                            TransactionFilter.Expense
                     },
                     label = {
                         Text("Expenses")
@@ -151,9 +200,12 @@ fun TransactionsScreen(
                 )
 
                 FilterChip(
-                    selected = selectedFilter == TransactionFilter.Income,
+                    selected =
+                        selectedFilter ==
+                            TransactionFilter.Income,
                     onClick = {
-                        selectedFilter = TransactionFilter.Income
+                        selectedFilter =
+                            TransactionFilter.Income
                     },
                     label = {
                         Text("Income")
@@ -162,29 +214,50 @@ fun TransactionsScreen(
             }
 
             if (filteredTransactions.isEmpty()) {
-                Text(
-                    text = if (transactions.isEmpty()) {
-                        "No transactions yet"
-                    } else {
-                        "No matching transactions"
-                    },
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(top = 16.dp)
-                )
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 24.dp),
+                    verticalArrangement =
+                        Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(
+                        text = if (transactions.isEmpty()) {
+                            "No transactions yet"
+                        } else {
+                            "No matching transactions"
+                        },
+                        style =
+                            MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    Text(
+                        text = if (transactions.isEmpty()) {
+                            "Add your first transaction to start tracking your money."
+                        } else {
+                            "Try searching by title, amount, notes, date or category."
+                        },
+                        style =
+                            MaterialTheme.typography.bodyMedium
+                    )
+                }
             } else {
                 LazyColumn(
                     verticalArrangement =
-                        androidx.compose.foundation.layout.Arrangement.spacedBy(
-                            10.dp
-                        ),
-                    modifier = Modifier.padding(top = 16.dp)
+                        Arrangement.spacedBy(10.dp),
+                    modifier =
+                        Modifier.padding(top = 16.dp)
                 ) {
                     items(filteredTransactions) { transaction ->
                         TransactionCard(
                             transaction = transaction,
-                            currencyCode = settings.currencyCode,
+                            currencyCode =
+                                settings.currencyCode,
                             onClick = {
-                                onEditTransaction(transaction.id)
+                                onEditTransaction(
+                                    transaction.id
+                                )
                             }
                         )
                     }
