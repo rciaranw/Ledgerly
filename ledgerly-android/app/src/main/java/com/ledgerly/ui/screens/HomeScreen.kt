@@ -21,11 +21,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ledgerly.data.models.RecurringTransaction
+import com.ledgerly.ui.components.PeriodSelector
 import com.ledgerly.ui.components.TransactionCard
 import com.ledgerly.ui.theme.LedgerlyExpenseRed
 import com.ledgerly.ui.theme.LedgerlyIncomeGreen
 import com.ledgerly.utils.CurrencyFormatter
+import com.ledgerly.utils.DatePeriodHelper
 import com.ledgerly.viewmodel.BudgetViewModel
+import com.ledgerly.viewmodel.PeriodViewModel
 import com.ledgerly.viewmodel.RecurringTransactionViewModel
 import com.ledgerly.viewmodel.SettingsViewModel
 import com.ledgerly.viewmodel.TransactionViewModel
@@ -36,7 +39,8 @@ fun HomeScreen(
     transactionViewModel: TransactionViewModel,
     budgetViewModel: BudgetViewModel,
     settingsViewModel: SettingsViewModel,
-    recurringTransactionViewModel: RecurringTransactionViewModel
+    recurringTransactionViewModel: RecurringTransactionViewModel,
+    periodViewModel: PeriodViewModel
 ) {
     val transactions = transactionViewModel.transactions
     val settings = settingsViewModel.settings
@@ -44,13 +48,41 @@ fun HomeScreen(
     val recurringTransactions =
         recurringTransactionViewModel.recurringTransactions
 
-    LaunchedEffect(transactions.size) {
-        budgetViewModel.refreshCurrentMonthBudgets(
-            transactions = transactions
+    val startDate =
+        DatePeriodHelper.startDate(
+            anchorDate = periodViewModel.anchorDate,
+            periodType = periodViewModel.periodType,
+            weekStartDay = settings.weekStartDay,
+            monthStartDay = settings.monthStartDay
+        )
+
+    val endDate =
+        DatePeriodHelper.endDate(
+            anchorDate = periodViewModel.anchorDate,
+            periodType = periodViewModel.periodType,
+            weekStartDay = settings.weekStartDay,
+            monthStartDay = settings.monthStartDay
+        )
+
+    val periodTransactions =
+        transactions.filter { transaction ->
+            !transaction.date.isBefore(startDate) &&
+                !transaction.date.isAfter(endDate)
+        }
+
+    LaunchedEffect(
+        transactions.size,
+        startDate,
+        endDate
+    ) {
+        budgetViewModel.updateBudgets(
+            transactions = transactions,
+            startDate = startDate,
+            endDate = endDate
         )
     }
 
-    val balance = transactions.sumOf { transaction ->
+    val balance = periodTransactions.sumOf { transaction ->
         if (transaction.isIncome) {
             transaction.amount
         } else {
@@ -58,11 +90,11 @@ fun HomeScreen(
         }
     }
 
-    val totalIncome = transactions
+    val totalIncome = periodTransactions
         .filter { it.isIncome }
         .sumOf { it.amount }
 
-    val totalExpenses = transactions
+    val totalExpenses = periodTransactions
         .filter { !it.isIncome }
         .sumOf { it.amount }
 
@@ -88,21 +120,28 @@ fun HomeScreen(
                     recurring to dueDate
                 }
             }
+            .filter {
+                !it.second.isBefore(startDate) &&
+                    !it.second.isAfter(endDate)
+            }
             .sortedBy {
                 it.second
             }
             .take(3)
 
-    val recentTransactions = transactions
+    val recentTransactions = periodTransactions
         .sortedByDescending { it.date }
         .take(5)
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(
+                rememberScrollState()
+            )
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement =
+            Arrangement.spacedBy(16.dp)
     ) {
 
         Text(
@@ -111,9 +150,26 @@ fun HomeScreen(
             fontWeight = FontWeight.Bold
         )
 
+        PeriodSelector(
+            periodType = periodViewModel.periodType,
+            anchorDate = periodViewModel.anchorDate,
+            weekStartDay = settings.weekStartDay,
+            monthStartDay = settings.monthStartDay,
+            onPrevious = {
+                periodViewModel.previousPeriod()
+            },
+            onNext = {
+                periodViewModel.nextPeriod()
+            },
+            onPeriodTypeChanged = { type ->
+                periodViewModel.setPeriodType(type)
+            }
+        )
+
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement =
+                Arrangement.spacedBy(12.dp)
         ) {
             DashboardMetricCard(
                 title = "Balance",
@@ -137,7 +193,8 @@ fun HomeScreen(
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement =
+                Arrangement.spacedBy(12.dp)
         ) {
             DashboardMetricCard(
                 title = "Spent",
@@ -160,13 +217,16 @@ fun HomeScreen(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(18.dp),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
+                containerColor =
+                    MaterialTheme.colorScheme.surfaceVariant
             ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            elevation =
+                CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(
                 modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement =
+                    Arrangement.spacedBy(12.dp)
             ) {
                 Text(
                     text = "Budget Snapshot",
@@ -175,7 +235,9 @@ fun HomeScreen(
                 )
 
                 if (activeBudgets.isEmpty()) {
-                    Text("No budgets set yet")
+                    Text(
+                        text = "No budgets set yet"
+                    )
                 } else {
                     activeBudgets
                         .take(3)
@@ -193,36 +255,44 @@ fun HomeScreen(
                                 ) {
                                     Column {
                                         Text(
-                                            text = budget.category.name,
-                                            fontWeight = FontWeight.Medium
+                                            text =
+                                                budget.category.name,
+                                            fontWeight =
+                                                FontWeight.Medium
                                         )
 
                                         Text(
                                             text = "Limit: ${
                                                 CurrencyFormatter.format(
-                                                    amount = budget.limit,
+                                                    amount =
+                                                        budget.limit,
                                                     currencyCode =
                                                         settings.currencyCode
                                                 )
                                             }",
                                             style =
-                                                MaterialTheme.typography.bodySmall
+                                                MaterialTheme
+                                                    .typography
+                                                    .bodySmall
                                         )
                                     }
 
                                     Text(
-                                        text = CurrencyFormatter.format(
-                                            amount = budget.remaining,
-                                            currencyCode =
-                                                settings.currencyCode
-                                        ),
+                                        text =
+                                            CurrencyFormatter.format(
+                                                amount =
+                                                    budget.remaining,
+                                                currencyCode =
+                                                    settings.currencyCode
+                                            ),
                                         fontWeight = FontWeight.Bold
                                     )
                                 }
 
                                 LinearProgressIndicator(
                                     progress = {
-                                        budget.progress.toFloat()
+                                        budget.progress
+                                            .toFloat()
                                             .coerceIn(0f, 1f)
                                     },
                                     modifier = Modifier.fillMaxWidth()
@@ -237,13 +307,16 @@ fun HomeScreen(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(18.dp),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
+                containerColor =
+                    MaterialTheme.colorScheme.surfaceVariant
             ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            elevation =
+                CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(
                 modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement =
+                    Arrangement.spacedBy(12.dp)
             ) {
                 Text(
                     text = "Upcoming Recurring Transactions",
@@ -252,7 +325,9 @@ fun HomeScreen(
                 )
 
                 if (upcomingRecurring.isEmpty()) {
-                    Text("No upcoming recurring transactions")
+                    Text(
+                        text = "No upcoming recurring transactions for this period"
+                    )
                 } else {
                     upcomingRecurring.forEach { item ->
                         val recurring = item.first
@@ -262,31 +337,38 @@ fun HomeScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement =
                                 Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment =
+                                Alignment.CenterVertically
                         ) {
                             Column {
                                 Text(
                                     text = recurring.title,
-                                    fontWeight = FontWeight.Medium
+                                    fontWeight =
+                                        FontWeight.Medium
                                 )
 
                                 Text(
                                     text = "Due: $dueDate",
                                     style =
-                                        MaterialTheme.typography.bodySmall
+                                        MaterialTheme
+                                            .typography
+                                            .bodySmall
                                 )
 
                                 Text(
                                     text = recurring.category.name,
                                     style =
-                                        MaterialTheme.typography.bodySmall
+                                        MaterialTheme
+                                            .typography
+                                            .bodySmall
                                 )
                             }
 
                             Text(
                                 text = CurrencyFormatter.format(
                                     amount = recurring.amount,
-                                    currencyCode = settings.currencyCode
+                                    currencyCode =
+                                        settings.currencyCode
                                 ),
                                 color = if (recurring.isIncome) {
                                     LedgerlyIncomeGreen
@@ -305,13 +387,16 @@ fun HomeScreen(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(18.dp),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
+                containerColor =
+                    MaterialTheme.colorScheme.surfaceVariant
             ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            elevation =
+                CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(
                 modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                verticalArrangement =
+                    Arrangement.spacedBy(10.dp)
             ) {
                 Text(
                     text = "Recent Transactions",
@@ -320,15 +405,19 @@ fun HomeScreen(
                 )
 
                 if (recentTransactions.isEmpty()) {
-                    Text("No transactions yet")
+                    Text(
+                        text = "No transactions for this period"
+                    )
                 } else {
                     Column(
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                        verticalArrangement =
+                            Arrangement.spacedBy(10.dp)
                     ) {
                         recentTransactions.forEach { transaction ->
                             TransactionCard(
                                 transaction = transaction,
-                                currencyCode = settings.currencyCode
+                                currencyCode =
+                                    settings.currencyCode
                             )
                         }
                     }
@@ -350,13 +439,16 @@ private fun DashboardMetricCard(
         modifier = modifier,
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+            containerColor =
+                MaterialTheme.colorScheme.surfaceVariant
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation =
+            CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
             modifier = Modifier.padding(14.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+            verticalArrangement =
+                Arrangement.spacedBy(6.dp)
         ) {
             Text(
                 text = title,
@@ -384,25 +476,30 @@ private fun nextDueDate(
 
     while (true) {
         candidate = when (recurring.unit) {
-            "DAILY" -> candidate.plusDays(
-                recurring.interval.toLong()
-            )
+            "DAILY" ->
+                candidate.plusDays(
+                    recurring.interval.toLong()
+                )
 
-            "WEEKLY" -> candidate.plusWeeks(
-                recurring.interval.toLong()
-            )
+            "WEEKLY" ->
+                candidate.plusWeeks(
+                    recurring.interval.toLong()
+                )
 
-            "MONTHLY" -> candidate.plusMonths(
-                recurring.interval.toLong()
-            )
+            "MONTHLY" ->
+                candidate.plusMonths(
+                    recurring.interval.toLong()
+                )
 
-            "YEARLY" -> candidate.plusYears(
-                recurring.interval.toLong()
-            )
+            "YEARLY" ->
+                candidate.plusYears(
+                    recurring.interval.toLong()
+                )
 
-            else -> candidate.plusMonths(
-                recurring.interval.toLong()
-            )
+            else ->
+                candidate.plusMonths(
+                    recurring.interval.toLong()
+                )
         }
 
         val endDate = recurring.endDate

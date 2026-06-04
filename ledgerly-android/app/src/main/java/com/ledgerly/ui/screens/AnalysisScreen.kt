@@ -21,10 +21,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ledgerly.ui.components.BudgetCard
+import com.ledgerly.ui.components.PeriodSelector
 import com.ledgerly.ui.theme.LedgerlyExpenseRed
 import com.ledgerly.ui.theme.LedgerlyIncomeGreen
 import com.ledgerly.utils.CurrencyFormatter
+import com.ledgerly.utils.DatePeriodHelper
 import com.ledgerly.viewmodel.BudgetViewModel
+import com.ledgerly.viewmodel.PeriodViewModel
 import com.ledgerly.viewmodel.SettingsViewModel
 import com.ledgerly.viewmodel.TransactionViewModel
 
@@ -33,6 +36,7 @@ fun AnalysisScreen(
     transactionViewModel: TransactionViewModel,
     budgetViewModel: BudgetViewModel,
     settingsViewModel: SettingsViewModel,
+    periodViewModel: PeriodViewModel,
     onAddBudget: () -> Unit,
     onEditBudget: (String) -> Unit
 ) {
@@ -40,25 +44,61 @@ fun AnalysisScreen(
     val transactions = transactionViewModel.transactions
     val activeBudgets = budgetViewModel.activeBudgets
 
-    LaunchedEffect(transactions.size) {
-        budgetViewModel.refreshCurrentMonthBudgets(
-            transactions = transactions
+    val startDate =
+        DatePeriodHelper.startDate(
+            anchorDate = periodViewModel.anchorDate,
+            periodType = periodViewModel.periodType,
+            weekStartDay = settings.weekStartDay,
+            monthStartDay = settings.monthStartDay
+        )
+
+    val endDate =
+        DatePeriodHelper.endDate(
+            anchorDate = periodViewModel.anchorDate,
+            periodType = periodViewModel.periodType,
+            weekStartDay = settings.weekStartDay,
+            monthStartDay = settings.monthStartDay
+        )
+
+    val periodTransactions =
+        transactions.filter { transaction ->
+            !transaction.date.isBefore(startDate) &&
+                !transaction.date.isAfter(endDate)
+        }
+
+    LaunchedEffect(
+        transactions.size,
+        startDate,
+        endDate
+    ) {
+        budgetViewModel.updateBudgets(
+            transactions = transactions,
+            startDate = startDate,
+            endDate = endDate
         )
     }
 
-    val totalIncome = transactions
-        .filter { it.isIncome }
-        .sumOf { it.amount }
+    val totalIncome =
+        periodTransactions
+            .filter { it.isIncome }
+            .sumOf { it.amount }
 
-    val totalExpenses = transactions
-        .filter { !it.isIncome }
-        .sumOf { it.amount }
+    val totalExpenses =
+        periodTransactions
+            .filter { !it.isIncome }
+            .sumOf { it.amount }
 
-    val balance = totalIncome - totalExpenses
+    val balance =
+        totalIncome - totalExpenses
 
-    val totalBudgetLimit = activeBudgets.sumOf { it.limit }
-    val totalBudgetSpent = activeBudgets.sumOf { it.spent }
-    val totalBudgetRemaining = activeBudgets.sumOf { it.remaining }
+    val totalBudgetLimit =
+        activeBudgets.sumOf { it.limit }
+
+    val totalBudgetSpent =
+        activeBudgets.sumOf { it.spent }
+
+    val totalBudgetRemaining =
+        activeBudgets.sumOf { it.remaining }
 
     val budgetProgress =
         if (totalBudgetLimit <= 0.0) {
@@ -69,28 +109,53 @@ fun AnalysisScreen(
                 .coerceIn(0f, 1f)
         }
 
-        val categoryBreakdown =
-    transactions
-        .filter { !it.isIncome }
-        .groupBy { it.category.name }
-        .mapValues { entry ->
-            entry.value.sumOf { it.amount }
-        }
-        .toList()
-        .sortedByDescending { it.second }
-        .take(5)
+    val categoryBreakdown =
+        periodTransactions
+            .filter { !it.isIncome }
+            .groupBy { it.category.name }
+            .mapValues { entry ->
+                entry.value.sumOf { it.amount }
+            }
+            .toList()
+            .sortedByDescending { it.second }
+            .take(5)
 
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+        verticalArrangement =
+            Arrangement.spacedBy(14.dp)
     ) {
+
         item {
             Text(
                 text = "Analysis",
-                style = MaterialTheme.typography.headlineMedium,
+                style =
+                    MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold
+            )
+        }
+
+        item {
+            PeriodSelector(
+                periodType =
+                    periodViewModel.periodType,
+                anchorDate =
+                    periodViewModel.anchorDate,
+                weekStartDay =
+                    settings.weekStartDay,
+                monthStartDay =
+                    settings.monthStartDay,
+                onPrevious = {
+                    periodViewModel.previousPeriod()
+                },
+                onNext = {
+                    periodViewModel.nextPeriod()
+                },
+                onPeriodTypeChanged = { type ->
+                    periodViewModel.setPeriodType(type)
+                }
             )
         }
 
@@ -99,67 +164,109 @@ fun AnalysisScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primary
+                    containerColor =
+                        MaterialTheme.colorScheme.primary
                 ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                elevation =
+                    CardDefaults.cardElevation(
+                        defaultElevation = 4.dp
+                    )
             ) {
                 Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    modifier =
+                        Modifier.padding(20.dp),
+                    verticalArrangement =
+                        Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
                         text = "Financial Overview",
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        style = MaterialTheme.typography.titleMedium
+                        color =
+                            MaterialTheme.colorScheme
+                                .onPrimary,
+                        style =
+                            MaterialTheme.typography
+                                .titleMedium
                     )
 
                     Text(
-                        text = CurrencyFormatter.format(
-                            amount = balance,
-                            currencyCode = settings.currencyCode
-                        ),
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        style = MaterialTheme.typography.headlineLarge,
+                        text =
+                            CurrencyFormatter.format(
+                                amount = balance,
+                                currencyCode =
+                                    settings.currencyCode
+                            ),
+                        color =
+                            MaterialTheme.colorScheme
+                                .onPrimary,
+                        style =
+                            MaterialTheme.typography
+                                .headlineLarge,
                         fontWeight = FontWeight.Bold
                     )
 
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        modifier =
+                            Modifier.fillMaxWidth(),
+                        horizontalArrangement =
+                            Arrangement.spacedBy(12.dp)
                     ) {
                         Column(
-                            modifier = Modifier.weight(1f)
+                            modifier =
+                                Modifier.weight(1f)
                         ) {
                             Text(
                                 text = "Income",
-                                color = MaterialTheme.colorScheme.onPrimary
+                                color =
+                                    MaterialTheme
+                                        .colorScheme
+                                        .onPrimary
                             )
 
                             Text(
-                                text = CurrencyFormatter.format(
-                                    amount = totalIncome,
-                                    currencyCode = settings.currencyCode
-                                ),
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                fontWeight = FontWeight.Bold
+                                text =
+                                    CurrencyFormatter
+                                        .format(
+                                            amount =
+                                                totalIncome,
+                                            currencyCode =
+                                                settings.currencyCode
+                                        ),
+                                color =
+                                    MaterialTheme
+                                        .colorScheme
+                                        .onPrimary,
+                                fontWeight =
+                                    FontWeight.Bold
                             )
                         }
 
                         Column(
-                            modifier = Modifier.weight(1f)
+                            modifier =
+                                Modifier.weight(1f)
                         ) {
                             Text(
                                 text = "Expenses",
-                                color = MaterialTheme.colorScheme.onPrimary
+                                color =
+                                    MaterialTheme
+                                        .colorScheme
+                                        .onPrimary
                             )
 
                             Text(
-                                text = CurrencyFormatter.format(
-                                    amount = totalExpenses,
-                                    currencyCode = settings.currencyCode
-                                ),
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                fontWeight = FontWeight.Bold
+                                text =
+                                    CurrencyFormatter
+                                        .format(
+                                            amount =
+                                                totalExpenses,
+                                            currencyCode =
+                                                settings.currencyCode
+                                        ),
+                                color =
+                                    MaterialTheme
+                                        .colorScheme
+                                        .onPrimary,
+                                fontWeight =
+                                    FontWeight.Bold
                             )
                         }
                     }
@@ -169,63 +276,89 @@ fun AnalysisScreen(
 
         item {
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                modifier =
+                    Modifier.fillMaxWidth(),
+                horizontalArrangement =
+                    Arrangement.spacedBy(12.dp)
             ) {
                 AnalysisMiniCard(
                     title = "Budgeted",
-                    value = CurrencyFormatter.format(
-                        amount = totalBudgetLimit,
-                        currencyCode = settings.currencyCode
-                    ),
-                    modifier = Modifier.weight(1f)
+                    value =
+                        CurrencyFormatter.format(
+                            amount =
+                                totalBudgetLimit,
+                            currencyCode =
+                                settings.currencyCode
+                        ),
+                    modifier =
+                        Modifier.weight(1f)
                 )
 
                 AnalysisMiniCard(
                     title = "Remaining",
-                    value = CurrencyFormatter.format(
-                        amount = totalBudgetRemaining,
-                        currencyCode = settings.currencyCode
-                    ),
-                    modifier = Modifier.weight(1f),
-                    valueColour = if (totalBudgetRemaining < 0) {
-                        LedgerlyExpenseRed
-                    } else {
-                        LedgerlyIncomeGreen
-                    }
+                    value =
+                        CurrencyFormatter.format(
+                            amount =
+                                totalBudgetRemaining,
+                            currencyCode =
+                                settings.currencyCode
+                        ),
+                    modifier =
+                        Modifier.weight(1f),
+                    valueColour =
+                        if (totalBudgetRemaining < 0) {
+                            LedgerlyExpenseRed
+                        } else {
+                            LedgerlyIncomeGreen
+                        }
                 )
             }
         }
 
         item {
             Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(18.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                modifier =
+                    Modifier.fillMaxWidth(),
+                shape =
+                    RoundedCornerShape(18.dp),
+                colors =
+                    CardDefaults.cardColors(
+                        containerColor =
+                            MaterialTheme
+                                .colorScheme
+                                .surfaceVariant
+                    )
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                    modifier =
+                        Modifier.padding(16.dp),
+                    verticalArrangement =
+                        Arrangement.spacedBy(10.dp)
                 ) {
                     Text(
                         text = "Overall Budget Use",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                        style =
+                            MaterialTheme
+                                .typography
+                                .titleMedium,
+                        fontWeight =
+                            FontWeight.Bold
                     )
 
                     Text(
                         text = "${
                             CurrencyFormatter.format(
-                                amount = totalBudgetSpent,
-                                currencyCode = settings.currencyCode
+                                amount =
+                                    totalBudgetSpent,
+                                currencyCode =
+                                    settings.currencyCode
                             )
                         } spent of ${
                             CurrencyFormatter.format(
-                                amount = totalBudgetLimit,
-                                currencyCode = settings.currencyCode
+                                amount =
+                                    totalBudgetLimit,
+                                currencyCode =
+                                    settings.currencyCode
                             )
                         }"
                     )
@@ -234,7 +367,8 @@ fun AnalysisScreen(
                         progress = {
                             budgetProgress
                         },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier =
+                            Modifier.fillMaxWidth()
                     )
                 }
             }
@@ -243,192 +377,135 @@ fun AnalysisScreen(
         item {
             Button(
                 onClick = onAddBudget,
-                modifier = Modifier.fillMaxWidth()
+                modifier =
+                    Modifier.fillMaxWidth()
             ) {
                 Text("Add Budget")
             }
         }
 
         item {
-    Text(
-        text = "Budget Health",
-        style = MaterialTheme.typography.titleLarge,
-        fontWeight = FontWeight.Bold
-    )
-}
-
-if (activeBudgets.isEmpty()) {
-    item {
-        Text("No budget data available.")
-    }
-} else {
-    items(
-        activeBudgets.take(5)
-    ) { budget ->
-
-        BudgetHealthCard(
-            category = budget.category.name,
-            progress = budget.progress
-        )
-    }
-}
-
-item {
-    Text(
-        text = "Top Spending Categories",
-        style = MaterialTheme.typography.titleLarge,
-        fontWeight = FontWeight.Bold
-    )
-}
-
-if (categoryBreakdown.isEmpty()) {
-    item {
-        Text("No spending data available.")
-    }
-} else {
-    items(categoryBreakdown) { category ->
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(18.dp),
-            colors = CardDefaults.cardColors(
-                containerColor =
-                    MaterialTheme.colorScheme.surfaceVariant
-            )
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement =
-                    Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = category.first,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Text(
-                    text = CurrencyFormatter.format(
-                        amount = category.second,
-                        currencyCode =
-                            settings.currencyCode
-                    )
-                )
-            }
-        }
-    }
-}
-
-        item {
             Text(
-                text = "Budget Progress",
-                style = MaterialTheme.typography.titleLarge,
+                text = "Budget Health",
+                style =
+                    MaterialTheme.typography
+                        .titleLarge,
                 fontWeight = FontWeight.Bold
             )
         }
 
         if (activeBudgets.isEmpty()) {
             item {
-                Text("No budgets configured yet.")
+                Text(
+                    "No budget data available."
+                )
+            }
+        } else {
+            items(
+                activeBudgets.take(5)
+            ) { budget ->
+                BudgetHealthCard(
+                    category =
+                        budget.category.name,
+                    progress =
+                        budget.progress
+                )
+            }
+        }
+
+        item {
+            Text(
+                text =
+                    "Top Spending Categories",
+                style =
+                    MaterialTheme.typography
+                        .titleLarge,
+                fontWeight =
+                    FontWeight.Bold
+            )
+        }
+
+        if (categoryBreakdown.isEmpty()) {
+            item {
+                Text(
+                    "No spending data available."
+                )
+            }
+        } else {
+            items(categoryBreakdown) { category ->
+
+                Card(
+                    modifier =
+                        Modifier.fillMaxWidth(),
+                    shape =
+                        RoundedCornerShape(18.dp),
+                    colors =
+                        CardDefaults.cardColors(
+                            containerColor =
+                                MaterialTheme
+                                    .colorScheme
+                                    .surfaceVariant
+                        )
+                ) {
+                    Row(
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                        horizontalArrangement =
+                            Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text =
+                                category.first,
+                            fontWeight =
+                                FontWeight.Bold
+                        )
+
+                        Text(
+                            text =
+                                CurrencyFormatter
+                                    .format(
+                                        amount =
+                                            category.second,
+                                        currencyCode =
+                                            settings.currencyCode
+                                    )
+                        )
+                    }
+                }
+            }
+        }
+
+        item {
+            Text(
+                text = "Budget Progress",
+                style =
+                    MaterialTheme.typography
+                        .titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        if (activeBudgets.isEmpty()) {
+            item {
+                Text(
+                    "No budgets configured yet."
+                )
             }
         } else {
             items(activeBudgets) { budget ->
                 BudgetCard(
                     budget = budget,
-                    currencyCode = settings.currencyCode,
+                    currencyCode =
+                        settings.currencyCode,
                     onClick = {
-                        onEditBudget(budget.id)
+                        onEditBudget(
+                            budget.id
+                        )
                     }
                 )
             }
-        }
-    }
-}
-
-@Composable
-private fun BudgetHealthCard(
-    category: String,
-    progress: Double
-) {
-    val percentage = (progress * 100).toInt()
-
-    val status = when {
-        progress >= 1.0 -> "Over Budget"
-        progress >= 0.8 -> "Near Limit"
-        else -> "Healthy"
-    }
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(
-            containerColor =
-                MaterialTheme.colorScheme.surfaceVariant
-        )
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement =
-                Arrangement.spacedBy(8.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement =
-                    Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = category,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Text(status)
-            }
-
-            LinearProgressIndicator(
-                progress = {
-                    progress.toFloat()
-                        .coerceIn(0f, 1f)
-                },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Text("$percentage% used")
-        }
-    }
-}
-
-@Composable
-private fun AnalysisMiniCard(
-    title: String,
-    value: String,
-    modifier: Modifier = Modifier,
-    valueColour: androidx.compose.ui.graphics.Color =
-        MaterialTheme.colorScheme.onSurface
-) {
-    Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(14.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyMedium
-            )
-
-            Text(
-                text = value,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = valueColour
-            )
         }
     }
 }

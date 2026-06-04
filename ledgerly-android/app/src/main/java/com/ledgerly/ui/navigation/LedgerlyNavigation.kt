@@ -45,6 +45,7 @@ import com.ledgerly.ui.screens.SettingsScreen
 import com.ledgerly.ui.screens.TransactionsScreen
 import com.ledgerly.viewmodel.BudgetViewModel
 import com.ledgerly.viewmodel.CategoryViewModel
+import com.ledgerly.viewmodel.PeriodViewModel
 import com.ledgerly.viewmodel.RecurringTransactionViewModel
 import com.ledgerly.viewmodel.SettingsViewModel
 import com.ledgerly.viewmodel.TransactionViewModel
@@ -174,6 +175,8 @@ fun LedgerlyNavigation() {
                 .getInstance(application)
         )
 
+    val periodViewModel: PeriodViewModel = viewModel()
+
     var recurringProcessed by remember {
         mutableStateOf(false)
     }
@@ -265,7 +268,8 @@ fun LedgerlyNavigation() {
                     budgetViewModel = budgetViewModel,
                     settingsViewModel = settingsViewModel,
                     recurringTransactionViewModel =
-                        recurringTransactionViewModel
+                        recurringTransactionViewModel,
+                    periodViewModel = periodViewModel
                 )
             }
 
@@ -298,6 +302,7 @@ fun LedgerlyNavigation() {
                     transactionViewModel = transactionViewModel,
                     budgetViewModel = budgetViewModel,
                     settingsViewModel = settingsViewModel,
+                    periodViewModel = periodViewModel,
                     onAddBudget = {
                         navController.navigate(
                             LedgerlyTab.AddBudget.route
