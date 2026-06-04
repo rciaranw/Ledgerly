@@ -9,7 +9,7 @@ data class RecurringTransactionEntity(
     val id: String,
     val title: String,
     val notes: String,
-    val amount: String,
+    val amount: Double,
     val categoryId: String,
     val categoryName: String,
     val categoryIcon: String,

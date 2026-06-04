@@ -69,6 +69,17 @@ fun AnalysisScreen(
                 .coerceIn(0f, 1f)
         }
 
+        val categoryBreakdown =
+    transactions
+        .filter { !it.isIncome }
+        .groupBy { it.category.name }
+        .mapValues { entry ->
+            entry.value.sumOf { it.amount }
+        }
+        .toList()
+        .sortedByDescending { it.second }
+        .take(5)
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -239,6 +250,77 @@ fun AnalysisScreen(
         }
 
         item {
+    Text(
+        text = "Budget Health",
+        style = MaterialTheme.typography.titleLarge,
+        fontWeight = FontWeight.Bold
+    )
+}
+
+if (activeBudgets.isEmpty()) {
+    item {
+        Text("No budget data available.")
+    }
+} else {
+    items(
+        activeBudgets.take(5)
+    ) { budget ->
+
+        BudgetHealthCard(
+            category = budget.category.name,
+            progress = budget.progress
+        )
+    }
+}
+
+item {
+    Text(
+        text = "Top Spending Categories",
+        style = MaterialTheme.typography.titleLarge,
+        fontWeight = FontWeight.Bold
+    )
+}
+
+if (categoryBreakdown.isEmpty()) {
+    item {
+        Text("No spending data available.")
+    }
+} else {
+    items(categoryBreakdown) { category ->
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(18.dp),
+            colors = CardDefaults.cardColors(
+                containerColor =
+                    MaterialTheme.colorScheme.surfaceVariant
+            )
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement =
+                    Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = category.first,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Text(
+                    text = CurrencyFormatter.format(
+                        amount = category.second,
+                        currencyCode =
+                            settings.currencyCode
+                    )
+                )
+            }
+        }
+    }
+}
+
+        item {
             Text(
                 text = "Budget Progress",
                 style = MaterialTheme.typography.titleLarge,
@@ -260,6 +342,58 @@ fun AnalysisScreen(
                     }
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun BudgetHealthCard(
+    category: String,
+    progress: Double
+) {
+    val percentage = (progress * 100).toInt()
+
+    val status = when {
+        progress >= 1.0 -> "Over Budget"
+        progress >= 0.8 -> "Near Limit"
+        else -> "Healthy"
+    }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(
+            containerColor =
+                MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement =
+                Arrangement.spacedBy(8.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement =
+                    Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = category,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Text(status)
+            }
+
+            LinearProgressIndicator(
+                progress = {
+                    progress.toFloat()
+                        .coerceIn(0f, 1f)
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Text("$percentage% used")
         }
     }
 }

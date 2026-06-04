@@ -20,23 +20,29 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.ledgerly.data.models.RecurringTransaction
 import com.ledgerly.ui.components.TransactionCard
 import com.ledgerly.ui.theme.LedgerlyExpenseRed
 import com.ledgerly.ui.theme.LedgerlyIncomeGreen
 import com.ledgerly.utils.CurrencyFormatter
 import com.ledgerly.viewmodel.BudgetViewModel
+import com.ledgerly.viewmodel.RecurringTransactionViewModel
 import com.ledgerly.viewmodel.SettingsViewModel
 import com.ledgerly.viewmodel.TransactionViewModel
+import java.time.LocalDate
 
 @Composable
 fun HomeScreen(
     transactionViewModel: TransactionViewModel,
     budgetViewModel: BudgetViewModel,
-    settingsViewModel: SettingsViewModel
+    settingsViewModel: SettingsViewModel,
+    recurringTransactionViewModel: RecurringTransactionViewModel
 ) {
     val transactions = transactionViewModel.transactions
     val settings = settingsViewModel.settings
     val activeBudgets = budgetViewModel.activeBudgets
+    val recurringTransactions =
+        recurringTransactionViewModel.recurringTransactions
 
     LaunchedEffect(transactions.size) {
         budgetViewModel.refreshCurrentMonthBudgets(
@@ -70,6 +76,22 @@ fun HomeScreen(
                 .toInt()
                 .coerceAtLeast(0)
         }
+
+    val upcomingRecurring =
+        recurringTransactions
+            .mapNotNull { recurring ->
+                val dueDate = nextDueDate(recurring)
+
+                if (dueDate == null) {
+                    null
+                } else {
+                    recurring to dueDate
+                }
+            }
+            .sortedBy {
+                it.second
+            }
+            .take(3)
 
     val recentTransactions = transactions
         .sortedByDescending { it.date }
@@ -159,12 +181,15 @@ fun HomeScreen(
                         .take(3)
                         .forEach { budget ->
                             Column(
-                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                                verticalArrangement =
+                                    Arrangement.spacedBy(4.dp)
                             ) {
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
+                                    horizontalArrangement =
+                                        Arrangement.SpaceBetween,
+                                    verticalAlignment =
+                                        Alignment.CenterVertically
                                 ) {
                                     Column {
                                         Text(
@@ -176,17 +201,20 @@ fun HomeScreen(
                                             text = "Limit: ${
                                                 CurrencyFormatter.format(
                                                     amount = budget.limit,
-                                                    currencyCode = settings.currencyCode
+                                                    currencyCode =
+                                                        settings.currencyCode
                                                 )
                                             }",
-                                            style = MaterialTheme.typography.bodySmall
+                                            style =
+                                                MaterialTheme.typography.bodySmall
                                         )
                                     }
 
                                     Text(
                                         text = CurrencyFormatter.format(
                                             amount = budget.remaining,
-                                            currencyCode = settings.currencyCode
+                                            currencyCode =
+                                                settings.currencyCode
                                         ),
                                         fontWeight = FontWeight.Bold
                                     )
@@ -201,6 +229,74 @@ fun HomeScreen(
                                 )
                             }
                         }
+                }
+            }
+        }
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(18.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = "Upcoming Recurring Transactions",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+
+                if (upcomingRecurring.isEmpty()) {
+                    Text("No upcoming recurring transactions")
+                } else {
+                    upcomingRecurring.forEach { item ->
+                        val recurring = item.first
+                        val dueDate = item.second
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement =
+                                Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(
+                                    text = recurring.title,
+                                    fontWeight = FontWeight.Medium
+                                )
+
+                                Text(
+                                    text = "Due: $dueDate",
+                                    style =
+                                        MaterialTheme.typography.bodySmall
+                                )
+
+                                Text(
+                                    text = recurring.category.name,
+                                    style =
+                                        MaterialTheme.typography.bodySmall
+                                )
+                            }
+
+                            Text(
+                                text = CurrencyFormatter.format(
+                                    amount = recurring.amount,
+                                    currencyCode = settings.currencyCode
+                                ),
+                                color = if (recurring.isIncome) {
+                                    LedgerlyIncomeGreen
+                                } else {
+                                    LedgerlyExpenseRed
+                                },
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -273,6 +369,50 @@ private fun DashboardMetricCard(
                 fontWeight = FontWeight.Bold,
                 color = valueColour
             )
+        }
+    }
+}
+
+private fun nextDueDate(
+    recurring: RecurringTransaction
+): LocalDate? {
+    val today = LocalDate.now()
+
+    var candidate =
+        recurring.lastGeneratedDate
+            ?: recurring.startDate.minusDays(1)
+
+    while (true) {
+        candidate = when (recurring.unit) {
+            "DAILY" -> candidate.plusDays(
+                recurring.interval.toLong()
+            )
+
+            "WEEKLY" -> candidate.plusWeeks(
+                recurring.interval.toLong()
+            )
+
+            "MONTHLY" -> candidate.plusMonths(
+                recurring.interval.toLong()
+            )
+
+            "YEARLY" -> candidate.plusYears(
+                recurring.interval.toLong()
+            )
+
+            else -> candidate.plusMonths(
+                recurring.interval.toLong()
+            )
+        }
+
+        val endDate = recurring.endDate
+
+        if (endDate != null && candidate.isAfter(endDate)) {
+            return null
+        }
+
+        if (!candidate.isBefore(today)) {
+            return candidate
         }
     }
 }

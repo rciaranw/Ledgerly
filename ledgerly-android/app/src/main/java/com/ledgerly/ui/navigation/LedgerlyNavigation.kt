@@ -204,12 +204,16 @@ fun LedgerlyNavigation() {
             startDestination = LedgerlyTab.Home.route,
             modifier = Modifier.padding(innerPadding)
         ) {
+
+            
             composable(LedgerlyTab.Home.route) {
                 HomeScreen(
-                    transactionViewModel = transactionViewModel,
-                    budgetViewModel = budgetViewModel,
-                    settingsViewModel = settingsViewModel
-                )
+    transactionViewModel = transactionViewModel,
+    budgetViewModel = budgetViewModel,
+    settingsViewModel = settingsViewModel,
+    recurringTransactionViewModel =
+        recurringTransactionViewModel
+)
             }
 
             composable(LedgerlyTab.Transactions.route) {
