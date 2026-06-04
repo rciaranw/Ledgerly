@@ -44,10 +44,8 @@ fun HomeScreen(
 ) {
     val transactions = transactionViewModel.transactions
     val settings = settingsViewModel.settings
-
     val overallBudget = budgetViewModel.overallBudget
     val categoryBudgets = budgetViewModel.categoryBudgets
-
     val recurringTransactions =
         recurringTransactionViewModel.recurringTransactions
 
@@ -85,23 +83,27 @@ fun HomeScreen(
         )
     }
 
-    val balance = periodTransactions.sumOf { transaction ->
-        if (transaction.isIncome) {
-            transaction.amount
-        } else {
-            -transaction.amount
+    val balance =
+        periodTransactions.sumOf { transaction ->
+            if (transaction.isIncome) {
+                transaction.amount
+            } else {
+                -transaction.amount
+            }
         }
-    }
 
-    val totalIncome = periodTransactions
-        .filter { it.isIncome }
-        .sumOf { it.amount }
+    val totalIncome =
+        periodTransactions
+            .filter { it.isIncome }
+            .sumOf { it.amount }
 
-    val totalExpenses = periodTransactions
-        .filter { !it.isIncome }
-        .sumOf { it.amount }
+    val totalExpenses =
+        periodTransactions
+            .filter { !it.isIncome }
+            .sumOf { it.amount }
 
-    val savedAmount = totalIncome - totalExpenses
+    val savedAmount =
+        totalIncome - totalExpenses
 
     val savedPercentage =
         if (totalIncome <= 0.0) {
@@ -132,9 +134,10 @@ fun HomeScreen(
             }
             .take(3)
 
-    val recentTransactions = periodTransactions
-        .sortedByDescending { it.date }
-        .take(5)
+    val recentTransactions =
+        periodTransactions
+            .sortedByDescending { it.date }
+            .take(5)
 
     Column(
         modifier = Modifier
@@ -146,7 +149,6 @@ fun HomeScreen(
         verticalArrangement =
             Arrangement.spacedBy(16.dp)
     ) {
-
         Text(
             text = "Ledgerly",
             style = MaterialTheme.typography.headlineMedium,
@@ -217,138 +219,122 @@ fun HomeScreen(
         }
 
         Card(
-    modifier = Modifier.fillMaxWidth(),
-    shape = RoundedCornerShape(18.dp),
-    colors = CardDefaults.cardColors(
-        containerColor =
-            MaterialTheme.colorScheme.surfaceVariant
-    ),
-    elevation =
-        CardDefaults.cardElevation(
-            defaultElevation = 2.dp
-        )
-) {
-    Column(
-        modifier = Modifier.padding(16.dp),
-        verticalArrangement =
-            Arrangement.spacedBy(12.dp)
-    ) {
-
-        Text(
-            text = "Budget",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
-        )
-
-        if (overallBudget == null) {
-
-            Text(
-                text = "No budget has been created yet."
-            )
-
-            Text(
-                text = "Create an overall budget to start tracking your spending."
-            )
-
-        } else {
-
-            Text(
-                text = "Overall Budget",
-                style =
-                    MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-
-            Text(
-                text =
-                    "${CurrencyFormatter.format(
-                        amount = overallBudget.spent,
-                        currencyCode =
-                            settings.currencyCode
-                    )} spent of ${
-                        CurrencyFormatter.format(
-                            amount = overallBudget.limit,
-                            currencyCode =
-                                settings.currencyCode
-                        )
-                    }"
-            )
-
-            LinearProgressIndicator(
-                progress = {
-                    overallBudget.progress
-                        .toFloat()
-                        .coerceIn(0f, 1f)
-                },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Text(
-                text =
-                    "Remaining: ${
-                        CurrencyFormatter.format(
-                            amount =
-                                overallBudget.remaining,
-                            currencyCode =
-                                settings.currencyCode
-                        )
-                    }",
-                fontWeight = FontWeight.Bold,
-                color =
-                    if (overallBudget.isOverBudget) {
-                        LedgerlyExpenseRed
-                    } else {
-                        LedgerlyIncomeGreen
-                    }
-            )
-
-            if (categoryBudgets.isNotEmpty()) {
-
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(18.dp),
+            colors = CardDefaults.cardColors(
+                containerColor =
+                    MaterialTheme.colorScheme.surfaceVariant
+            ),
+            elevation =
+                CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement =
+                    Arrangement.spacedBy(12.dp)
+            ) {
                 Text(
-                    text = "Category Allocations",
-                    style =
-                        MaterialTheme.typography.titleSmall,
+                    text = "Budget",
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
 
-                categoryBudgets
-                    .take(3)
-                    .forEach { budget ->
+                if (overallBudget == null) {
+                    Text(
+                        text = "No budget has been created yet."
+                    )
 
-                        Row(
-                            modifier =
-                                Modifier.fillMaxWidth(),
-                            horizontalArrangement =
-                                Arrangement.SpaceBetween
-                        ) {
+                    Text(
+                        text = "Create an overall budget to start tracking your spending.",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                } else {
+                    Text(
+                        text = "Overall Budget",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
 
-                            Text(
-                                text =
-                                    budget.category.name
+                    Text(
+                        text = "${
+                            CurrencyFormatter.format(
+                                amount = overallBudget.spent,
+                                currencyCode = settings.currencyCode
                             )
-
-                            Text(
-                                text =
-                                    "${CurrencyFormatter.format(
-                                        amount =
-                                            budget.spent,
-                                        currencyCode =
-                                            settings.currencyCode
-                                    )} / ${
-                                        CurrencyFormatter.format(
-                                            amount =
-                                                budget.limit,
-                                            currencyCode =
-                                                settings.currencyCode
-                                        )
-                                    }"
+                        } spent of ${
+                            CurrencyFormatter.format(
+                                amount = overallBudget.limit,
+                                currencyCode = settings.currencyCode
                             )
+                        }"
+                    )
+
+                    LinearProgressIndicator(
+                        progress = {
+                            overallBudget.progress
+                                .toFloat()
+                                .coerceIn(0f, 1f)
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Text(
+                        text = "Remaining: ${
+                            CurrencyFormatter.format(
+                                amount = overallBudget.remaining,
+                                currencyCode = settings.currencyCode
+                            )
+                        }",
+                        fontWeight = FontWeight.Bold,
+                        color = if (overallBudget.isOverBudget) {
+                            LedgerlyExpenseRed
+                        } else {
+                            LedgerlyIncomeGreen
                         }
+                    )
+
+                    if (categoryBudgets.isNotEmpty()) {
+                        Text(
+                            text = "Category Allocations",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        categoryBudgets
+                            .take(3)
+                            .forEach { budget ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement =
+                                        Arrangement.SpaceBetween,
+                                    verticalAlignment =
+                                        Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = budget.category.name
+                                    )
+
+                                    Text(
+                                        text = "${
+                                            CurrencyFormatter.format(
+                                                amount = budget.spent,
+                                                currencyCode =
+                                                    settings.currencyCode
+                                            )
+                                        } / ${
+                                            CurrencyFormatter.format(
+                                                amount = budget.limit,
+                                                currencyCode =
+                                                    settings.currencyCode
+                                            )
+                                        }"
+                                    )
+                                }
+                            }
                     }
+                }
             }
         }
-    }
-}
 
         Card(
             modifier = Modifier.fillMaxWidth(),
@@ -390,32 +376,26 @@ fun HomeScreen(
                             Column {
                                 Text(
                                     text = recurring.title,
-                                    fontWeight =
-                                        FontWeight.Medium
+                                    fontWeight = FontWeight.Medium
                                 )
 
                                 Text(
                                     text = "Due: $dueDate",
                                     style =
-                                        MaterialTheme
-                                            .typography
-                                            .bodySmall
+                                        MaterialTheme.typography.bodySmall
                                 )
 
                                 Text(
                                     text = recurring.category.name,
                                     style =
-                                        MaterialTheme
-                                            .typography
-                                            .bodySmall
+                                        MaterialTheme.typography.bodySmall
                                 )
                             }
 
                             Text(
                                 text = CurrencyFormatter.format(
                                     amount = recurring.amount,
-                                    currencyCode =
-                                        settings.currencyCode
+                                    currencyCode = settings.currencyCode
                                 ),
                                 color = if (recurring.isIncome) {
                                     LedgerlyIncomeGreen
@@ -463,8 +443,7 @@ fun HomeScreen(
                         recentTransactions.forEach { transaction ->
                             TransactionCard(
                                 transaction = transaction,
-                                currencyCode =
-                                    settings.currencyCode
+                                currencyCode = settings.currencyCode
                             )
                         }
                     }
@@ -522,32 +501,33 @@ private fun nextDueDate(
             ?: recurring.startDate.minusDays(1)
 
     while (true) {
-        candidate = when (recurring.unit) {
-            "DAILY" ->
-                candidate.plusDays(
-                    recurring.interval.toLong()
-                )
+        candidate =
+            when (recurring.unit) {
+                "DAILY" ->
+                    candidate.plusDays(
+                        recurring.interval.toLong()
+                    )
 
-            "WEEKLY" ->
-                candidate.plusWeeks(
-                    recurring.interval.toLong()
-                )
+                "WEEKLY" ->
+                    candidate.plusWeeks(
+                        recurring.interval.toLong()
+                    )
 
-            "MONTHLY" ->
-                candidate.plusMonths(
-                    recurring.interval.toLong()
-                )
+                "MONTHLY" ->
+                    candidate.plusMonths(
+                        recurring.interval.toLong()
+                    )
 
-            "YEARLY" ->
-                candidate.plusYears(
-                    recurring.interval.toLong()
-                )
+                "YEARLY" ->
+                    candidate.plusYears(
+                        recurring.interval.toLong()
+                    )
 
-            else ->
-                candidate.plusMonths(
-                    recurring.interval.toLong()
-                )
-        }
+                else ->
+                    candidate.plusMonths(
+                        recurring.interval.toLong()
+                    )
+            }
 
         val endDate = recurring.endDate
 
