@@ -44,7 +44,10 @@ fun HomeScreen(
 ) {
     val transactions = transactionViewModel.transactions
     val settings = settingsViewModel.settings
-    val activeBudgets = budgetViewModel.activeBudgets
+
+    val overallBudget = budgetViewModel.overallBudget
+    val categoryBudgets = budgetViewModel.categoryBudgets
+
     val recurringTransactions =
         recurringTransactionViewModel.recurringTransactions
 
@@ -214,94 +217,138 @@ fun HomeScreen(
         }
 
         Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(18.dp),
-            colors = CardDefaults.cardColors(
-                containerColor =
-                    MaterialTheme.colorScheme.surfaceVariant
-            ),
-            elevation =
-                CardDefaults.cardElevation(defaultElevation = 2.dp)
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement =
-                    Arrangement.spacedBy(12.dp)
-            ) {
+    modifier = Modifier.fillMaxWidth(),
+    shape = RoundedCornerShape(18.dp),
+    colors = CardDefaults.cardColors(
+        containerColor =
+            MaterialTheme.colorScheme.surfaceVariant
+    ),
+    elevation =
+        CardDefaults.cardElevation(
+            defaultElevation = 2.dp
+        )
+) {
+    Column(
+        modifier = Modifier.padding(16.dp),
+        verticalArrangement =
+            Arrangement.spacedBy(12.dp)
+    ) {
+
+        Text(
+            text = "Budget",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
+
+        if (overallBudget == null) {
+
+            Text(
+                text = "No budget has been created yet."
+            )
+
+            Text(
+                text = "Create an overall budget to start tracking your spending."
+            )
+
+        } else {
+
+            Text(
+                text = "Overall Budget",
+                style =
+                    MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text =
+                    "${CurrencyFormatter.format(
+                        amount = overallBudget.spent,
+                        currencyCode =
+                            settings.currencyCode
+                    )} spent of ${
+                        CurrencyFormatter.format(
+                            amount = overallBudget.limit,
+                            currencyCode =
+                                settings.currencyCode
+                        )
+                    }"
+            )
+
+            LinearProgressIndicator(
+                progress = {
+                    overallBudget.progress
+                        .toFloat()
+                        .coerceIn(0f, 1f)
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Text(
+                text =
+                    "Remaining: ${
+                        CurrencyFormatter.format(
+                            amount =
+                                overallBudget.remaining,
+                            currencyCode =
+                                settings.currencyCode
+                        )
+                    }",
+                fontWeight = FontWeight.Bold,
+                color =
+                    if (overallBudget.isOverBudget) {
+                        LedgerlyExpenseRed
+                    } else {
+                        LedgerlyIncomeGreen
+                    }
+            )
+
+            if (categoryBudgets.isNotEmpty()) {
+
                 Text(
-                    text = "Budget Snapshot",
-                    style = MaterialTheme.typography.titleMedium,
+                    text = "Category Allocations",
+                    style =
+                        MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold
                 )
 
-                if (activeBudgets.isEmpty()) {
-                    Text(
-                        text = "No budgets set yet"
-                    )
-                } else {
-                    activeBudgets
-                        .take(3)
-                        .forEach { budget ->
-                            Column(
-                                verticalArrangement =
-                                    Arrangement.spacedBy(4.dp)
-                            ) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement =
-                                        Arrangement.SpaceBetween,
-                                    verticalAlignment =
-                                        Alignment.CenterVertically
-                                ) {
-                                    Column {
-                                        Text(
-                                            text =
-                                                budget.category.name,
-                                            fontWeight =
-                                                FontWeight.Medium
+                categoryBudgets
+                    .take(3)
+                    .forEach { budget ->
+
+                        Row(
+                            modifier =
+                                Modifier.fillMaxWidth(),
+                            horizontalArrangement =
+                                Arrangement.SpaceBetween
+                        ) {
+
+                            Text(
+                                text =
+                                    budget.category.name
+                            )
+
+                            Text(
+                                text =
+                                    "${CurrencyFormatter.format(
+                                        amount =
+                                            budget.spent,
+                                        currencyCode =
+                                            settings.currencyCode
+                                    )} / ${
+                                        CurrencyFormatter.format(
+                                            amount =
+                                                budget.limit,
+                                            currencyCode =
+                                                settings.currencyCode
                                         )
-
-                                        Text(
-                                            text = "Limit: ${
-                                                CurrencyFormatter.format(
-                                                    amount =
-                                                        budget.limit,
-                                                    currencyCode =
-                                                        settings.currencyCode
-                                                )
-                                            }",
-                                            style =
-                                                MaterialTheme
-                                                    .typography
-                                                    .bodySmall
-                                        )
-                                    }
-
-                                    Text(
-                                        text =
-                                            CurrencyFormatter.format(
-                                                amount =
-                                                    budget.remaining,
-                                                currencyCode =
-                                                    settings.currencyCode
-                                            ),
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                }
-
-                                LinearProgressIndicator(
-                                    progress = {
-                                        budget.progress
-                                            .toFloat()
-                                            .coerceIn(0f, 1f)
-                                    },
-                                    modifier = Modifier.fillMaxWidth()
-                                )
-                            }
+                                    }"
+                            )
                         }
-                }
+                    }
             }
         }
+    }
+}
 
         Card(
             modifier = Modifier.fillMaxWidth(),
