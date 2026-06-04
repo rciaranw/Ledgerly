@@ -279,6 +279,11 @@ fun LedgerlyNavigation() {
                         navController.navigate(
                             LedgerlyTab.RecurringTransactions.route
                         )
+                    },
+                    onExport = {
+                        navController.navigate(
+                            LedgerlyTab.Export.route
+                        )
                     }
                 )
             }
