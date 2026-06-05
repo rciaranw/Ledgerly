@@ -42,7 +42,12 @@ fun AnalysisScreen(
 ) {
     val settings = settingsViewModel.settings
     val transactions = transactionViewModel.transactions
-    val activeBudgets = budgetViewModel.activeBudgets
+
+    val overallBudget =
+        budgetViewModel.overallBudget
+
+    val categoryBudgets =
+        budgetViewModel.categoryBudgets
 
     val startDate =
         DatePeriodHelper.startDate(
@@ -92,13 +97,13 @@ fun AnalysisScreen(
         totalIncome - totalExpenses
 
     val totalBudgetLimit =
-        activeBudgets.sumOf { it.limit }
+        overallBudget?.limit ?: 0.0
 
     val totalBudgetSpent =
-        activeBudgets.sumOf { it.spent }
+        overallBudget?.spent ?: 0.0
 
     val totalBudgetRemaining =
-        activeBudgets.sumOf { it.remaining }
+        overallBudget?.remaining ?: 0.0
 
     val budgetProgress =
         if (totalBudgetLimit <= 0.0) {
@@ -120,6 +125,9 @@ fun AnalysisScreen(
             .sortedByDescending { it.second }
             .take(5)
 
+    val budgetCards =
+        listOfNotNull(overallBudget) + categoryBudgets
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -127,7 +135,6 @@ fun AnalysisScreen(
         verticalArrangement =
             Arrangement.spacedBy(14.dp)
     ) {
-
         item {
             Text(
                 text = "Analysis",
@@ -345,31 +352,56 @@ fun AnalysisScreen(
                             FontWeight.Bold
                     )
 
-                    Text(
-                        text = "${
-                            CurrencyFormatter.format(
-                                amount =
-                                    totalBudgetSpent,
-                                currencyCode =
-                                    settings.currencyCode
-                            )
-                        } spent of ${
-                            CurrencyFormatter.format(
-                                amount =
-                                    totalBudgetLimit,
-                                currencyCode =
-                                    settings.currencyCode
-                            )
-                        }"
-                    )
+                    if (overallBudget == null) {
+                        Text(
+                            text = "No overall budget has been created yet."
+                        )
+                    } else {
+                        Text(
+                            text = "${
+                                CurrencyFormatter.format(
+                                    amount =
+                                        totalBudgetSpent,
+                                    currencyCode =
+                                        settings.currencyCode
+                                )
+                            } spent of ${
+                                CurrencyFormatter.format(
+                                    amount =
+                                        totalBudgetLimit,
+                                    currencyCode =
+                                        settings.currencyCode
+                                )
+                            }"
+                        )
 
-                    LinearProgressIndicator(
-                        progress = {
-                            budgetProgress
-                        },
-                        modifier =
-                            Modifier.fillMaxWidth()
-                    )
+                        LinearProgressIndicator(
+                            progress = {
+                                budgetProgress
+                            },
+                            modifier =
+                                Modifier.fillMaxWidth()
+                        )
+
+                        Text(
+                            text = "Remaining: ${
+                                CurrencyFormatter.format(
+                                    amount =
+                                        totalBudgetRemaining,
+                                    currencyCode =
+                                        settings.currencyCode
+                                )
+                            }",
+                            color =
+                                if (totalBudgetRemaining < 0.0) {
+                                    LedgerlyExpenseRed
+                                } else {
+                                    LedgerlyIncomeGreen
+                                },
+                            fontWeight =
+                                FontWeight.Bold
+                        )
+                    }
                 }
             }
         }
@@ -380,13 +412,19 @@ fun AnalysisScreen(
                 modifier =
                     Modifier.fillMaxWidth()
             ) {
-                Text("Add Budget")
+                Text(
+                    text = if (overallBudget == null) {
+                        "Add Budget"
+                    } else {
+                        "Edit Budget Plan"
+                    }
+                )
             }
         }
 
         item {
             Text(
-                text = "Budget Health",
+                text = "Category Allocations",
                 style =
                     MaterialTheme.typography
                         .titleLarge,
@@ -394,15 +432,15 @@ fun AnalysisScreen(
             )
         }
 
-        if (activeBudgets.isEmpty()) {
+        if (categoryBudgets.isEmpty()) {
             item {
                 Text(
-                    "No budget data available."
+                    text = "No category allocations configured yet."
                 )
             }
         } else {
             items(
-                activeBudgets.take(5)
+                categoryBudgets.take(5)
             ) { budget ->
                 BudgetHealthCard(
                     category =
@@ -487,14 +525,14 @@ fun AnalysisScreen(
             )
         }
 
-        if (activeBudgets.isEmpty()) {
+        if (budgetCards.isEmpty()) {
             item {
                 Text(
-                    "No budgets configured yet."
+                    "No budget configured yet."
                 )
             }
         } else {
-            items(activeBudgets) { budget ->
+            items(budgetCards) { budget ->
                 BudgetCard(
                     budget = budget,
                     currencyCode =
@@ -506,6 +544,111 @@ fun AnalysisScreen(
                     }
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun BudgetHealthCard(
+    category: String,
+    progress: Double
+) {
+    val percentage =
+        (progress * 100)
+            .toInt()
+            .coerceAtLeast(0)
+
+    val status =
+        when {
+            progress >= 1.0 ->
+                "Over Budget"
+
+            progress >= 0.8 ->
+                "Near Limit"
+
+            else ->
+                "Healthy"
+        }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(
+            containerColor =
+                MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement =
+                Arrangement.spacedBy(8.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement =
+                    Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = category,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Text(status)
+            }
+
+            LinearProgressIndicator(
+                progress = {
+                    progress.toFloat()
+                        .coerceIn(0f, 1f)
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Text(
+                text = "$percentage% used"
+            )
+        }
+    }
+}
+
+@Composable
+private fun AnalysisMiniCard(
+    title: String,
+    value: String,
+    modifier: Modifier = Modifier,
+    valueColour: androidx.compose.ui.graphics.Color =
+        MaterialTheme.colorScheme.onSurface
+) {
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(
+            containerColor =
+                MaterialTheme.colorScheme.surfaceVariant
+        ),
+        elevation =
+            CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement =
+                Arrangement.spacedBy(6.dp)
+        ) {
+            Text(
+                text = title,
+                style =
+                    MaterialTheme.typography.bodyMedium
+            )
+
+            Text(
+                text = value,
+                style =
+                    MaterialTheme.typography.titleLarge,
+                fontWeight =
+                    FontWeight.Bold,
+                color =
+                    valueColour
+            )
         }
     }
 }
