@@ -24,6 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.ledgerly.ui.theme.LedgerlyExpenseRed
 import com.ledgerly.viewmodel.BudgetViewModel
 
 @Composable
@@ -43,7 +44,8 @@ fun EditBudgetScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement =
+                Arrangement.spacedBy(16.dp)
         ) {
             Text(
                 text = "Budget not found",
@@ -62,8 +64,13 @@ fun EditBudgetScreen(
         return
     }
 
+    val isOverallBudget =
+        budget.id == BudgetViewModel.OVERALL_BUDGET_ID
+
     var amountText by remember {
-        mutableStateOf(budget.limit.toString())
+        mutableStateOf(
+            budget.limit.toString()
+        )
     }
 
     var validationMessage by remember {
@@ -80,10 +87,22 @@ fun EditBudgetScreen(
                 showDeleteDialog = false
             },
             title = {
-                Text("Delete Budget?")
+                Text(
+                    text = if (isOverallBudget) {
+                        "Delete Overall Budget?"
+                    } else {
+                        "Delete Allocation?"
+                    }
+                )
             },
             text = {
-                Text("This budget will be permanently deleted.")
+                Text(
+                    text = if (isOverallBudget) {
+                        "This will delete your overall budget. Category allocations will remain unless deleted separately."
+                    } else {
+                        "This category allocation will be permanently deleted."
+                    }
+                )
             },
             confirmButton = {
                 TextButton(
@@ -93,7 +112,10 @@ fun EditBudgetScreen(
                         onDeleted()
                     }
                 ) {
-                    Text("Delete")
+                    Text(
+                        text = "Delete",
+                        color = LedgerlyExpenseRed
+                    )
                 }
             },
             dismissButton = {
@@ -102,7 +124,10 @@ fun EditBudgetScreen(
                         showDeleteDialog = false
                     }
                 ) {
-                    Text("Cancel")
+                    Text(
+                        text = "Cancel",
+                        color = LedgerlyExpenseRed
+                    )
                 }
             }
         )
@@ -111,12 +136,19 @@ fun EditBudgetScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(
+                rememberScrollState()
+            )
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement =
+            Arrangement.spacedBy(16.dp)
     ) {
         Text(
-            text = "Edit Budget",
+            text = if (isOverallBudget) {
+                "Edit Overall Budget"
+            } else {
+                "Edit Allocation"
+            },
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold
         )
@@ -125,18 +157,30 @@ fun EditBudgetScreen(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
+                containerColor =
+                    MaterialTheme.colorScheme.surfaceVariant
             ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            elevation =
+                CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(
                 modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement =
+                    Arrangement.spacedBy(16.dp)
             ) {
                 Text(
                     text = budget.category.name,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
+                )
+
+                Text(
+                    text = if (isOverallBudget) {
+                        "Update the total amount you want to spend during the selected period."
+                    } else {
+                        "Update the amount assigned to this category."
+                    },
+                    style = MaterialTheme.typography.bodySmall
                 )
 
                 OutlinedTextField(
@@ -146,7 +190,13 @@ fun EditBudgetScreen(
                         validationMessage = null
                     },
                     label = {
-                        Text("Budget Limit")
+                        Text(
+                            text = if (isOverallBudget) {
+                                "Overall Budget"
+                            } else {
+                                "Allocation Amount"
+                            }
+                        )
                     },
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -160,17 +210,25 @@ fun EditBudgetScreen(
 
                 Button(
                     onClick = {
-                        val amount = amountText.toDoubleOrNull()
+                        val amount =
+                            amountText.toDoubleOrNull()
 
                         if (amount == null || amount <= 0.0) {
-                            validationMessage = "Enter a valid amount."
+                            validationMessage =
+                                "Enter a valid amount."
                             return@Button
                         }
 
-                        budgetViewModel.setBudget(
-                            category = budget.category,
-                            limit = amount
-                        )
+                        if (isOverallBudget) {
+                            budgetViewModel.setOverallBudget(
+                                limit = amount
+                            )
+                        } else {
+                            budgetViewModel.setBudget(
+                                category = budget.category,
+                                limit = amount
+                            )
+                        }
 
                         onSaved()
                     },
@@ -185,14 +243,24 @@ fun EditBudgetScreen(
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Delete Budget")
+                    Text(
+                        text = if (isOverallBudget) {
+                            "Delete Overall Budget"
+                        } else {
+                            "Delete Allocation"
+                        },
+                        color = LedgerlyExpenseRed
+                    )
                 }
 
                 TextButton(
                     onClick = onCancel,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Cancel")
+                    Text(
+                        text = "Cancel",
+                        color = LedgerlyExpenseRed
+                    )
                 }
             }
         }
