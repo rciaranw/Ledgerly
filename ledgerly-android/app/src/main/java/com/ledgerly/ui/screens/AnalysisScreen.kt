@@ -169,7 +169,7 @@ fun AnalysisScreen(
                     periodViewModel.nextPeriod()
                 },
                 onPeriodTypeChanged = { type ->
-                    periodViewModel.setPeriodType(type)
+                    periodViewModel.updatePeriodType(type)
                 }
             )
         }

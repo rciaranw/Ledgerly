@@ -12,24 +12,38 @@ class PeriodViewModel : ViewModel() {
     var periodType by mutableStateOf(
         PeriodType.MONTH
     )
-        private set
+    private set
 
     var anchorDate by mutableStateOf(
         LocalDate.now()
     )
         private set
 
-    fun setPeriodType(
+    fun updatePeriodType(
         type: PeriodType
     ) {
         periodType = type
     }
 
-    fun nextPeriod() {
-
+    fun previousPeriod() {
         anchorDate =
             when (periodType) {
+                PeriodType.DAY ->
+                    anchorDate.minusDays(1)
 
+                PeriodType.WEEK ->
+                    anchorDate.minusWeeks(1)
+
+                PeriodType.MONTH ->
+                    anchorDate.minusMonths(1)
+
+                PeriodType.YEAR ->
+                    anchorDate.minusYears(1)
+            }
+    }
+    fun nextPeriod() {
+        anchorDate =
+            when (periodType) {
                 PeriodType.DAY ->
                     anchorDate.plusDays(1)
 
@@ -44,22 +58,7 @@ class PeriodViewModel : ViewModel() {
             }
     }
 
-    fun previousPeriod() {
-
-        anchorDate =
-            when (periodType) {
-
-                PeriodType.DAY ->
-                    anchorDate.minusDays(1)
-
-                PeriodType.WEEK ->
-                    anchorDate.minusWeeks(1)
-
-                PeriodType.MONTH ->
-                    anchorDate.minusMonths(1)
-
-                PeriodType.YEAR ->
-                    anchorDate.minusYears(1)
-            }
+    fun resetToToday() {
+        anchorDate = LocalDate.now()
     }
 }
