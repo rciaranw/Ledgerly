@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -50,6 +51,7 @@ fun SettingsScreen(
     onExport: () -> Unit
 ) {
     val settings = settingsViewModel.settings
+
     val customCategories =
         categoryViewModel.allCategories.filter {
             !it.isDefault
@@ -96,7 +98,8 @@ fun SettingsScreen(
     val selectedTheme =
         when (settings.theme) {
             "Turquoise" -> "Default"
-            "Light" -> "White"
+            "White" -> "Light"
+            "Light" -> "Light"
             else -> settings.theme
         }
 
@@ -192,10 +195,9 @@ fun SettingsScreen(
                             Text("Currency")
                         },
                         trailingIcon = {
-                            ExposedDropdownMenuDefaults
-                                .TrailingIcon(
-                                    expanded = currencyExpanded
-                                )
+                            ExposedDropdownMenuDefaults.TrailingIcon(
+                                expanded = currencyExpanded
+                            )
                         },
                         modifier = Modifier
                             .menuAnchor()
@@ -214,10 +216,7 @@ fun SettingsScreen(
                                     Text(currency)
                                 },
                                 onClick = {
-                                    settingsViewModel.setCurrency(
-                                        currency
-                                    )
-
+                                    settingsViewModel.setCurrency(currency)
                                     currencyExpanded = false
                                 }
                             )
@@ -228,14 +227,12 @@ fun SettingsScreen(
                 ExposedDropdownMenuBox(
                     expanded = weekStartExpanded,
                     onExpandedChange = {
-                        weekStartExpanded =
-                            !weekStartExpanded
+                        weekStartExpanded = !weekStartExpanded
                     }
                 ) {
                     val selectedDayName =
                         weekDays.firstOrNull {
-                            it.first ==
-                                settings.weekStartDay
+                            it.first == settings.weekStartDay
                         }?.second ?: "Monday"
 
                     OutlinedTextField(
@@ -246,11 +243,9 @@ fun SettingsScreen(
                             Text("Week Start Day")
                         },
                         trailingIcon = {
-                            ExposedDropdownMenuDefaults
-                                .TrailingIcon(
-                                    expanded =
-                                        weekStartExpanded
-                                )
+                            ExposedDropdownMenuDefaults.TrailingIcon(
+                                expanded = weekStartExpanded
+                            )
                         },
                         modifier = Modifier
                             .menuAnchor()
@@ -269,11 +264,7 @@ fun SettingsScreen(
                                     Text(day.second)
                                 },
                                 onClick = {
-                                    settingsViewModel
-                                        .setWeekStartDay(
-                                            day.first
-                                        )
-
+                                    settingsViewModel.setWeekStartDay(day.first)
                                     weekStartExpanded = false
                                 }
                             )
@@ -284,24 +275,20 @@ fun SettingsScreen(
                 ExposedDropdownMenuBox(
                     expanded = monthStartExpanded,
                     onExpandedChange = {
-                        monthStartExpanded =
-                            !monthStartExpanded
+                        monthStartExpanded = !monthStartExpanded
                     }
                 ) {
                     OutlinedTextField(
-                        value =
-                            settings.monthStartDay.toString(),
+                        value = settings.monthStartDay.toString(),
                         onValueChange = {},
                         readOnly = true,
                         label = {
                             Text("Month Start Day")
                         },
                         trailingIcon = {
-                            ExposedDropdownMenuDefaults
-                                .TrailingIcon(
-                                    expanded =
-                                        monthStartExpanded
-                                )
+                            ExposedDropdownMenuDefaults.TrailingIcon(
+                                expanded = monthStartExpanded
+                            )
                         },
                         modifier = Modifier
                             .menuAnchor()
@@ -320,9 +307,7 @@ fun SettingsScreen(
                                     Text(day.toString())
                                 },
                                 onClick = {
-                                    settingsViewModel
-                                        .setMonthStartDay(day)
-
+                                    settingsViewModel.setMonthStartDay(day)
                                     monthStartExpanded = false
                                 }
                             )
@@ -354,8 +339,8 @@ fun SettingsScreen(
                 )
 
                 ThemeOptionCard(
-                    title = "Ledgerly Blue",
-                    description = "Default dark navy and turquoise branding",
+                    title = "Default",
+                    description = "Ledgerly branded appearance",
                     selected = selectedTheme == "Default",
                     onClick = {
                         settingsViewModel.setTheme("Default")
@@ -363,9 +348,9 @@ fun SettingsScreen(
                 )
 
                 ThemeOptionCard(
-                    title = "White",
-                    description = "Clean light mode with bright surfaces",
-                    selected = selectedTheme == "White",
+                    title = "Light",
+                    description = "Clean light interface",
+                    selected = selectedTheme == "Light",
                     onClick = {
                         settingsViewModel.setTheme("White")
                     }
@@ -373,7 +358,7 @@ fun SettingsScreen(
 
                 ThemeOptionCard(
                     title = "Dark",
-                    description = "Deep black theme with turquoise accents",
+                    description = "Dark appearance for low-light use",
                     selected = selectedTheme == "Dark",
                     onClick = {
                         settingsViewModel.setTheme("Dark")
@@ -390,8 +375,7 @@ fun SettingsScreen(
             Switch(
                 checked = settings.carryOverEnabled,
                 onCheckedChange = {
-                    settingsViewModel
-                        .setCarryOverEnabled(it)
+                    settingsViewModel.setCarryOverEnabled(it)
                 }
             )
         }
@@ -470,16 +454,13 @@ fun SettingsScreen(
                             ) {
                                 Text(
                                     text = category.name,
-                                    fontWeight =
-                                        FontWeight.Medium
+                                    fontWeight = FontWeight.Medium
                                 )
 
                                 Text(
                                     text = "Custom category",
                                     style =
-                                        MaterialTheme
-                                            .typography
-                                            .bodySmall
+                                        MaterialTheme.typography.bodySmall
                                 )
                             }
 
@@ -499,7 +480,9 @@ fun SettingsScreen(
 
                 Button(
                     onClick = onAddCategory,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .width(220.dp)
+                        .align(Alignment.CenterHorizontally)
                 ) {
                     Text("Add Category")
                 }
@@ -538,9 +521,10 @@ fun SettingsScreen(
                 )
 
                 TextButton(
-                    onClick = {
-                    },
-                    modifier = Modifier.fillMaxWidth()
+                    onClick = {},
+                    modifier = Modifier
+                        .width(220.dp)
+                        .align(Alignment.CenterHorizontally)
                 ) {
                     Text("Contact Support")
                 }
@@ -687,7 +671,9 @@ private fun SettingsButtonCard(
 
             Button(
                 onClick = onClick,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .width(220.dp)
+                    .align(Alignment.CenterHorizontally)
             ) {
                 Text(buttonText)
             }
