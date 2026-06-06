@@ -11,10 +11,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,11 +20,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import com.ledgerly.ui.components.EmptyStateCard
+import com.ledgerly.ui.components.LedgerlyPrimaryButton
+import com.ledgerly.ui.components.LedgerlySecondaryButton
 import com.ledgerly.ui.components.TransactionCard
 import com.ledgerly.viewmodel.CategoryViewModel
 import com.ledgerly.viewmodel.SettingsViewModel
@@ -41,10 +43,14 @@ fun TransactionsScreen(
     onAddRecurringTransaction: () -> Unit,
     onEditTransaction: (String) -> Unit
 ) {
-    val transactions = transactionViewModel.transactions
-    val settings = settingsViewModel.settings
+    val transactions =
+        transactionViewModel.transactions
 
-    val focusManager = LocalFocusManager.current
+    val settings =
+        settingsViewModel.settings
+
+    val focusManager =
+        LocalFocusManager.current
 
     var searchText by remember {
         mutableStateOf("")
@@ -58,15 +64,19 @@ fun TransactionsScreen(
         transactions
             .filter { transaction ->
                 when (selectedFilter) {
-                    TransactionFilter.All -> true
+                    TransactionFilter.All ->
+                        true
+
                     TransactionFilter.Income ->
                         transaction.isIncome
+
                     TransactionFilter.Expense ->
                         !transaction.isIncome
                 }
             }
             .filter { transaction ->
-                val query = searchText.trim()
+                val query =
+                    searchText.trim()
 
                 if (query.isBlank()) {
                     true
@@ -109,12 +119,15 @@ fun TransactionsScreen(
             .padding(16.dp)
     ) {
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier =
+                Modifier.fillMaxSize()
         ) {
             Text(
                 text = "Transactions",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold
+                style =
+                    MaterialTheme.typography.headlineMedium,
+                fontWeight =
+                    FontWeight.Bold
             )
 
             Row(
@@ -122,30 +135,34 @@ fun TransactionsScreen(
                     .fillMaxWidth()
                     .padding(top = 16.dp),
                 horizontalArrangement =
-                    Arrangement.spacedBy(10.dp)
+                    Arrangement.Center,
+                verticalAlignment =
+                    Alignment.CenterVertically
             ) {
-                Button(
-                    onClick = onAddTransaction,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("Add")
-                }
+                LedgerlyPrimaryButton(
+                    text = "Add",
+                    onClick = onAddTransaction
+                )
 
-                OutlinedButton(
-                    onClick = onAddRecurringTransaction,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("Recurring")
-                }
+                androidx.compose.foundation.layout.Spacer(
+                    modifier =
+                        Modifier.padding(horizontal = 5.dp)
+                )
+
+                LedgerlySecondaryButton(
+                    text = "Recurring",
+                    onClick = onAddRecurringTransaction
+                )
             }
 
             OutlinedTextField(
                 value = searchText,
                 onValueChange = {
-                    searchText = it.replace(
-                        "\n",
-                        ""
-                    )
+                    searchText =
+                        it.replace(
+                            "\n",
+                            ""
+                        )
                 },
                 singleLine = true,
                 label = {
@@ -217,30 +234,21 @@ fun TransactionsScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 24.dp),
-                    verticalArrangement =
-                        Arrangement.spacedBy(6.dp)
+                        .padding(top = 24.dp)
                 ) {
-                    Text(
-                        text = if (transactions.isEmpty()) {
-                            "No transactions yet"
-                        } else {
-                            "No matching transactions"
-                        },
-                        style =
-                            MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-
-                    Text(
-                        text = if (transactions.isEmpty()) {
-                            "Add your first transaction to start tracking your money."
-                        } else {
-                            "Try searching by title, amount, notes, date or category."
-                        },
-                        style =
-                            MaterialTheme.typography.bodyMedium
-                    )
+                    if (transactions.isEmpty()) {
+                        EmptyStateCard(
+                            emoji = "💳",
+                            title = "No transactions yet",
+                            message = "Add your first transaction to start tracking your money."
+                        )
+                    } else {
+                        EmptyStateCard(
+                            emoji = "🔍",
+                            title = "No matching transactions",
+                            message = "Try searching by title, amount, notes, date or category."
+                        )
+                    }
                 }
             } else {
                 LazyColumn(
