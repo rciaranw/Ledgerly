@@ -21,9 +21,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ledgerly.ui.components.BudgetCard
+import com.ledgerly.ui.components.CategoryBreakdownChartCard
+import com.ledgerly.ui.components.IncomeExpenseChartCard
+import com.ledgerly.ui.components.MonthlyTrendChartCard
 import com.ledgerly.ui.components.PeriodSelector
+import com.ledgerly.ui.components.SpendingPieChartCard
 import com.ledgerly.ui.theme.LedgerlyExpenseRed
 import com.ledgerly.ui.theme.LedgerlyIncomeGreen
+import com.ledgerly.utils.AnalysisDataHelper
 import com.ledgerly.utils.CurrencyFormatter
 import com.ledgerly.utils.DatePeriodHelper
 import com.ledgerly.viewmodel.BudgetViewModel
@@ -115,15 +120,18 @@ fun AnalysisScreen(
         }
 
     val categoryBreakdown =
-        periodTransactions
-            .filter { !it.isIncome }
-            .groupBy { it.category.name }
-            .mapValues { entry ->
-                entry.value.sumOf { it.amount }
-            }
-            .toList()
-            .sortedByDescending { it.second }
+        AnalysisDataHelper
+            .categoryBreakdownData(
+                periodTransactions
+            )
             .take(5)
+
+    val monthlyTrendData =
+        AnalysisDataHelper
+            .monthlyTrendData(
+                transactions
+            )
+            .takeLast(6)
 
     val budgetCards =
         listOfNotNull(overallBudget) + categoryBudgets
@@ -279,6 +287,35 @@ fun AnalysisScreen(
                     }
                 }
             }
+        }
+
+        item {
+            IncomeExpenseChartCard(
+                income = totalIncome,
+                expenses = totalExpenses,
+                currencyCode = settings.currencyCode
+            )
+        }
+
+        item {
+            SpendingPieChartCard(
+                data = categoryBreakdown,
+                currencyCode = settings.currencyCode
+            )
+        }
+
+        item {
+            CategoryBreakdownChartCard(
+                data = categoryBreakdown,
+                currencyCode = settings.currencyCode
+            )
+        }
+
+        item {
+            MonthlyTrendChartCard(
+                data = monthlyTrendData,
+                currencyCode = settings.currencyCode
+            )
         }
 
         item {
@@ -495,7 +532,7 @@ fun AnalysisScreen(
                     ) {
                         Text(
                             text =
-                                category.first,
+                                category.label,
                             fontWeight =
                                 FontWeight.Bold
                         )
@@ -505,7 +542,7 @@ fun AnalysisScreen(
                                 CurrencyFormatter
                                     .format(
                                         amount =
-                                            category.second,
+                                            category.amount,
                                         currencyCode =
                                             settings.currencyCode
                                     )
