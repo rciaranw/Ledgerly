@@ -14,7 +14,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
@@ -42,6 +41,8 @@ import androidx.compose.ui.unit.dp
 import com.ledgerly.data.models.DefaultCategories
 import com.ledgerly.data.models.Transaction
 import com.ledgerly.ui.components.CategoryIcon
+import com.ledgerly.ui.components.LedgerlyNegativeTextButton
+import com.ledgerly.ui.components.LedgerlyPrimaryButton
 import com.ledgerly.ui.theme.LedgerlyExpenseRed
 import com.ledgerly.ui.theme.LedgerlyIncomeGreen
 import com.ledgerly.viewmodel.BudgetViewModel
@@ -154,7 +155,6 @@ fun AddTransactionScreen(
         verticalArrangement =
             Arrangement.spacedBy(16.dp)
     ) {
-
         Text(
             text = "Add Transaction",
             style = MaterialTheme.typography.headlineMedium,
@@ -169,7 +169,6 @@ fun AddTransactionScreen(
                     MaterialTheme.colorScheme.surfaceVariant
             )
         ) {
-
             Column(
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement =
@@ -189,7 +188,6 @@ fun AddTransactionScreen(
                             !categoryExpanded
                     }
                 ) {
-
                     OutlinedTextField(
                         value = selectedCategory.name,
                         onValueChange = {},
@@ -334,7 +332,8 @@ fun AddTransactionScreen(
                     )
                 }
 
-                Button(
+                LedgerlyPrimaryButton(
+                    text = "Save Transaction",
                     onClick = {
                         val amount =
                             amountText.toDoubleOrNull()
@@ -342,7 +341,7 @@ fun AddTransactionScreen(
                         if (amount == null || amount <= 0.0) {
                             validationMessage =
                                 "Please enter a valid amount."
-                            return@Button
+                            return@LedgerlyPrimaryButton
                         }
 
                         val transaction = Transaction(
@@ -367,20 +366,16 @@ fun AddTransactionScreen(
 
                         onSaved()
                     },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Save Transaction")
-                }
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                )
 
-                TextButton(
+                LedgerlyNegativeTextButton(
+                    text = "Cancel",
                     onClick = onCancel,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = "Cancel",
-                        color = LedgerlyExpenseRed
-                    )
-                }
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                )
             }
         }
     }

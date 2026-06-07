@@ -1,17 +1,20 @@
 package com.ledgerly.ui.screens
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -22,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -144,7 +148,7 @@ fun TransactionsScreen(
                     onClick = onAddTransaction
                 )
 
-                androidx.compose.foundation.layout.Spacer(
+                Spacer(
                     modifier =
                         Modifier.padding(horizontal = 5.dp)
                 )
@@ -183,52 +187,15 @@ fun TransactionsScreen(
                     .padding(top = 16.dp)
             )
 
-            Row(
+            TransactionFilterSelector(
+                selectedFilter = selectedFilter,
+                onFilterSelected = { filter ->
+                    selectedFilter = filter
+                },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 12.dp),
-                horizontalArrangement =
-                    Arrangement.spacedBy(8.dp)
-            ) {
-                FilterChip(
-                    selected =
-                        selectedFilter ==
-                            TransactionFilter.All,
-                    onClick = {
-                        selectedFilter =
-                            TransactionFilter.All
-                    },
-                    label = {
-                        Text("All")
-                    }
-                )
-
-                FilterChip(
-                    selected =
-                        selectedFilter ==
-                            TransactionFilter.Expense,
-                    onClick = {
-                        selectedFilter =
-                            TransactionFilter.Expense
-                    },
-                    label = {
-                        Text("Expenses")
-                    }
-                )
-
-                FilterChip(
-                    selected =
-                        selectedFilter ==
-                            TransactionFilter.Income,
-                    onClick = {
-                        selectedFilter =
-                            TransactionFilter.Income
-                    },
-                    label = {
-                        Text("Income")
-                    }
-                )
-            }
+                    .padding(top = 12.dp)
+            )
 
             if (filteredTransactions.isEmpty()) {
                 Column(
@@ -272,6 +239,101 @@ fun TransactionsScreen(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun TransactionFilterSelector(
+    selectedFilter: TransactionFilter,
+    onFilterSelected: (TransactionFilter) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement =
+            Arrangement.spacedBy(8.dp)
+    ) {
+        TransactionFilterOption(
+            label = "All",
+            selected =
+                selectedFilter == TransactionFilter.All,
+            onClick = {
+                onFilterSelected(
+                    TransactionFilter.All
+                )
+            },
+            modifier = Modifier.weight(1f)
+        )
+
+        TransactionFilterOption(
+            label = "Expenses",
+            selected =
+                selectedFilter == TransactionFilter.Expense,
+            onClick = {
+                onFilterSelected(
+                    TransactionFilter.Expense
+                )
+            },
+            modifier = Modifier.weight(1f)
+        )
+
+        TransactionFilterOption(
+            label = "Income",
+            selected =
+                selectedFilter == TransactionFilter.Income,
+            onClick = {
+                onFilterSelected(
+                    TransactionFilter.Income
+                )
+            },
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+
+@Composable
+private fun TransactionFilterOption(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .clip(
+                RoundedCornerShape(50)
+            )
+            .background(
+                if (selected) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.surfaceVariant
+                }
+            )
+            .clickable {
+                onClick()
+            }
+            .padding(
+                vertical = 10.dp
+            ),
+        contentAlignment =
+            Alignment.Center
+    ) {
+        Text(
+            text = label,
+            color =
+                if (selected) {
+                    MaterialTheme.colorScheme.onPrimary
+                } else {
+                    MaterialTheme.colorScheme.onSurface
+                },
+            fontWeight =
+                if (selected) {
+                    FontWeight.Bold
+                } else {
+                    FontWeight.Medium
+                }
+        )
     }
 }
 

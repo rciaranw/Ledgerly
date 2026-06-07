@@ -1,6 +1,9 @@
 package com.ledgerly.ui.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,14 +14,15 @@ import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ledgerly.data.models.PeriodType
@@ -33,6 +37,7 @@ fun PeriodSelector(
     monthStartDay: Int,
     onPrevious: () -> Unit,
     onNext: () -> Unit,
+    onToday: () -> Unit,
     onPeriodTypeChanged: (PeriodType) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -77,12 +82,23 @@ fun PeriodSelector(
                     )
                 }
 
-                Text(
-                    text = label,
-                    style =
-                        MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
+                Column(
+                    horizontalAlignment =
+                        Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = label,
+                        style =
+                            MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    TextButton(
+                        onClick = onToday
+                    ) {
+                        Text("Today")
+                    }
+                }
 
                 IconButton(
                     onClick = onNext
@@ -99,9 +115,9 @@ fun PeriodSelector(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement =
-                    Arrangement.SpaceBetween
+                    Arrangement.spacedBy(8.dp)
             ) {
-                PeriodTypeChip(
+                PeriodTypeOption(
                     label = "Day",
                     selected =
                         periodType == PeriodType.DAY,
@@ -109,10 +125,11 @@ fun PeriodSelector(
                         onPeriodTypeChanged(
                             PeriodType.DAY
                         )
-                    }
+                    },
+                    modifier = Modifier.weight(1f)
                 )
 
-                PeriodTypeChip(
+                PeriodTypeOption(
                     label = "Week",
                     selected =
                         periodType == PeriodType.WEEK,
@@ -120,10 +137,11 @@ fun PeriodSelector(
                         onPeriodTypeChanged(
                             PeriodType.WEEK
                         )
-                    }
+                    },
+                    modifier = Modifier.weight(1f)
                 )
 
-                PeriodTypeChip(
+                PeriodTypeOption(
                     label = "Month",
                     selected =
                         periodType == PeriodType.MONTH,
@@ -131,10 +149,11 @@ fun PeriodSelector(
                         onPeriodTypeChanged(
                             PeriodType.MONTH
                         )
-                    }
+                    },
+                    modifier = Modifier.weight(1f)
                 )
 
-                PeriodTypeChip(
+                PeriodTypeOption(
                     label = "Year",
                     selected =
                         periodType == PeriodType.YEAR,
@@ -142,7 +161,8 @@ fun PeriodSelector(
                         onPeriodTypeChanged(
                             PeriodType.YEAR
                         )
-                    }
+                    },
+                    modifier = Modifier.weight(1f)
                 )
             }
         }
@@ -150,16 +170,45 @@ fun PeriodSelector(
 }
 
 @Composable
-private fun PeriodTypeChip(
+private fun PeriodTypeOption(
     label: String,
     selected: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    FilterChip(
-        selected = selected,
-        onClick = onClick,
-        label = {
-            Text(label)
-        }
-    )
+    Box(
+        modifier = modifier
+            .clip(
+                RoundedCornerShape(50)
+            )
+            .background(
+                if (selected) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.background
+                }
+            )
+            .clickable {
+                onClick()
+            }
+            .padding(
+                vertical = 10.dp
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = label,
+            color = if (selected) {
+                MaterialTheme.colorScheme.onPrimary
+            } else {
+                MaterialTheme.colorScheme.onSurface
+            },
+            fontWeight =
+                if (selected) {
+                    FontWeight.Bold
+                } else {
+                    FontWeight.Medium
+                }
+        )
+    }
 }

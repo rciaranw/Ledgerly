@@ -1,315 +1,645 @@
-package com.ledgerly.ui.components
+package com.ledgerly.ui.screens
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.ledgerly.ui.components.BudgetCard
+import com.ledgerly.ui.components.CategoryBreakdownChartCard
+import com.ledgerly.ui.components.IncomeExpenseChartCard
+import com.ledgerly.ui.components.MonthlyTrendChartCard
+import com.ledgerly.ui.components.PeriodSelector
+import com.ledgerly.ui.components.SpendingPieChartCard
+import com.ledgerly.ui.theme.LedgerlyExpenseRed
+import com.ledgerly.ui.theme.LedgerlyIncomeGreen
+import com.ledgerly.utils.AnalysisDataHelper
 import com.ledgerly.utils.CurrencyFormatter
-
-data class ChartDataItem(
-    val label: String,
-    val amount: Double
-)
+import com.ledgerly.utils.DatePeriodHelper
+import com.ledgerly.viewmodel.BudgetViewModel
+import com.ledgerly.viewmodel.PeriodViewModel
+import com.ledgerly.viewmodel.SettingsViewModel
+import com.ledgerly.viewmodel.TransactionViewModel
 
 @Composable
-fun IncomeExpenseChartCard(
-    income: Double,
-    expenses: Double,
-    currencyCode: String
+fun AnalysisScreen(
+    transactionViewModel: TransactionViewModel,
+    budgetViewModel: BudgetViewModel,
+    settingsViewModel: SettingsViewModel,
+    periodViewModel: PeriodViewModel,
+    onAddBudget: () -> Unit,
+    onEditBudget: (String) -> Unit
 ) {
-    val total =
-        income + expenses
+    val settings = settingsViewModel.settings
+    val transactions = transactionViewModel.transactions
 
-    val incomeProgress =
-        if (total <= 0.0) {
+    val overallBudget =
+        budgetViewModel.overallBudget
+
+    val categoryBudgets =
+        budgetViewModel.categoryBudgets
+
+    val startDate =
+        DatePeriodHelper.startDate(
+            anchorDate = periodViewModel.anchorDate,
+            periodType = periodViewModel.periodType,
+            weekStartDay = settings.weekStartDay,
+            monthStartDay = settings.monthStartDay
+        )
+
+    val endDate =
+        DatePeriodHelper.endDate(
+            anchorDate = periodViewModel.anchorDate,
+            periodType = periodViewModel.periodType,
+            weekStartDay = settings.weekStartDay,
+            monthStartDay = settings.monthStartDay
+        )
+
+    val periodTransactions =
+        transactions.filter { transaction ->
+            !transaction.date.isBefore(startDate) &&
+                !transaction.date.isAfter(endDate)
+        }
+
+    LaunchedEffect(
+        transactions.size,
+        startDate,
+        endDate
+    ) {
+        budgetViewModel.updateBudgets(
+            transactions = transactions,
+            startDate = startDate,
+            endDate = endDate
+        )
+    }
+
+    val totalIncome =
+        periodTransactions
+            .filter { it.isIncome }
+            .sumOf { it.amount }
+
+    val totalExpenses =
+        periodTransactions
+            .filter { !it.isIncome }
+            .sumOf { it.amount }
+
+    val balance =
+        totalIncome - totalExpenses
+
+    val totalBudgetLimit =
+        overallBudget?.limit ?: 0.0
+
+    val totalBudgetSpent =
+        overallBudget?.spent ?: 0.0
+
+    val totalBudgetRemaining =
+        overallBudget?.remaining ?: 0.0
+
+    val budgetProgress =
+        if (totalBudgetLimit <= 0.0) {
             0f
         } else {
-            (income / total).toFloat()
+            (totalBudgetSpent / totalBudgetLimit)
+                .toFloat()
+                .coerceIn(0f, 1f)
         }
 
-    val expenseProgress =
-        if (total <= 0.0) {
-            0f
-        } else {
-            (expenses / total).toFloat()
-        }
+    val categoryBreakdown =
+        AnalysisDataHelper
+            .categoryBreakdownData(
+                periodTransactions
+            )
+            .take(5)
 
-    ChartCard(
-        title = "Income vs Expenses"
+    val monthlyTrendData =
+        AnalysisDataHelper
+            .monthlyTrendData(
+                transactions
+            )
+            .takeLast(6)
+
+    val budgetCards =
+        listOfNotNull(overallBudget) + categoryBudgets
+
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement =
+            Arrangement.spacedBy(14.dp)
     ) {
-        Column(
-            verticalArrangement =
-                Arrangement.spacedBy(12.dp)
-        ) {
-            ChartProgressRow(
-                label = "Income",
-                value = CurrencyFormatter.format(
-                    amount = income,
-                    currencyCode = currencyCode
+        item {
+            Text(
+                text = "Analysis",
+                style =
+                    MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        item {
+            PeriodSelector(
+                periodType =
+                    periodViewModel.periodType,
+                anchorDate =
+                    periodViewModel.anchorDate,
+                weekStartDay =
+                    settings.weekStartDay,
+                monthStartDay =
+                    settings.monthStartDay,
+                onPrevious = {
+                    periodViewModel.previousPeriod()
+                },
+                onNext = {
+                    periodViewModel.nextPeriod()
+                },
+                onToday = {
+                    periodViewModel.resetToToday()
+                },
+                onPeriodTypeChanged = { type ->
+                    periodViewModel.updatePeriodType(type)
+                }
+            )
+        }
+
+        item {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor =
+                        MaterialTheme.colorScheme.primary
                 ),
-                progress = incomeProgress
-            )
-
-            ChartProgressRow(
-                label = "Expenses",
-                value = CurrencyFormatter.format(
-                    amount = expenses,
-                    currencyCode = currencyCode
-                ),
-                progress = expenseProgress
-            )
-        }
-    }
-}
-
-@Composable
-fun SpendingPieChartCard(
-    data: List<ChartDataItem>,
-    currencyCode: String
-) {
-    val total =
-        data.sumOf {
-            it.amount
-        }
-
-    ChartCard(
-        title = "Spending Split"
-    ) {
-        if (data.isEmpty() || total <= 0.0) {
-            Text(
-                text = "No spending data available."
-            )
-        } else {
-            Column(
-                verticalArrangement =
-                    Arrangement.spacedBy(14.dp)
-            ) {
-                Canvas(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(180.dp)
-                ) {
-                    val diameter =
-                        size.minDimension * 0.75f
-
-                    val topLeft =
-                        Offset(
-                            x = (size.width - diameter) / 2f,
-                            y = (size.height - diameter) / 2f
-                        )
-
-                    var startAngle = -90f
-
-                    data.forEachIndexed { index, item ->
-                        val sweepAngle =
-                            ((item.amount / total) * 360f)
-                                .toFloat()
-
-                        drawArc(
-                            color = chartColours[
-                                index % chartColours.size
-                            ],
-                            startAngle = startAngle,
-                            sweepAngle = sweepAngle,
-                            useCenter = false,
-                            topLeft = topLeft,
-                            size = Size(
-                                diameter,
-                                diameter
-                            ),
-                            style = Stroke(
-                                width = 28.dp.toPx(),
-                                cap = StrokeCap.Butt
-                            )
-                        )
-
-                        startAngle += sweepAngle
-                    }
-                }
-
-                data.take(5).forEachIndexed { index, item ->
-                    ChartLegendRow(
-                        label = item.label,
-                        value = CurrencyFormatter.format(
-                            amount = item.amount,
-                            currencyCode = currencyCode
-                        ),
-                        colourIndex = index
+                elevation =
+                    CardDefaults.cardElevation(
+                        defaultElevation = 4.dp
                     )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun CategoryBreakdownChartCard(
-    data: List<ChartDataItem>,
-    currencyCode: String
-) {
-    val maxAmount =
-        data.maxOfOrNull {
-            it.amount
-        } ?: 0.0
-
-    ChartCard(
-        title = "Category Breakdown"
-    ) {
-        if (data.isEmpty() || maxAmount <= 0.0) {
-            Text(
-                text = "No category spending yet."
-            )
-        } else {
-            Column(
-                verticalArrangement =
-                    Arrangement.spacedBy(12.dp)
             ) {
-                data.take(5).forEach { item ->
-                    ChartProgressRow(
-                        label = item.label,
-                        value = CurrencyFormatter.format(
-                            amount = item.amount,
-                            currencyCode = currencyCode
-                        ),
-                        progress =
-                            (item.amount / maxAmount)
-                                .toFloat()
-                                .coerceIn(0f, 1f)
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun MonthlyTrendChartCard(
-    data: List<ChartDataItem>,
-    currencyCode: String
-) {
-    val maxAmount =
-        data.maxOfOrNull {
-            it.amount
-        } ?: 0.0
-
-    ChartCard(
-        title = "Monthly Trend"
-    ) {
-        if (data.isEmpty() || maxAmount <= 0.0) {
-            Text(
-                text = "No trend data available yet."
-            )
-        } else {
-            Column(
-                verticalArrangement =
-                    Arrangement.spacedBy(12.dp)
-            ) {
-                Canvas(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(180.dp)
+                Column(
+                    modifier =
+                        Modifier.padding(20.dp),
+                    verticalArrangement =
+                        Arrangement.spacedBy(12.dp)
                 ) {
-                    val barSpacing =
-                        10.dp.toPx()
+                    Text(
+                        text = "Financial Overview",
+                        color =
+                            MaterialTheme.colorScheme.onPrimary,
+                        style =
+                            MaterialTheme.typography.titleMedium
+                    )
 
-                    val barCount =
-                        data.size.coerceAtLeast(1)
-
-                    val totalSpacing =
-                        barSpacing * (barCount - 1)
-
-                    val barWidth =
-                        (size.width - totalSpacing) / barCount
-
-                    data.forEachIndexed { index, item ->
-                        val heightRatio =
-                            (item.amount / maxAmount)
-                                .toFloat()
-                                .coerceIn(0f, 1f)
-
-                        val barHeight =
-                            size.height * heightRatio
-
-                        val x =
-                            index * (barWidth + barSpacing)
-
-                        val y =
-                            size.height - barHeight
-
-                        drawRoundRect(
-                            color = chartColours[
-                                index % chartColours.size
-                            ],
-                            topLeft = Offset(
-                                x = x,
-                                y = y
+                    Text(
+                        text =
+                            CurrencyFormatter.format(
+                                amount = balance,
+                                currencyCode =
+                                    settings.currencyCode
                             ),
-                            size = Size(
-                                width = barWidth,
-                                height = barHeight
-                            ),
-                            cornerRadius =
-                                androidx.compose.ui.geometry.CornerRadius(
-                                    x = 8.dp.toPx(),
-                                    y = 8.dp.toPx()
-                                )
-                        )
-                    }
-                }
+                        color =
+                            MaterialTheme.colorScheme.onPrimary,
+                        style =
+                            MaterialTheme.typography.headlineLarge,
+                        fontWeight = FontWeight.Bold
+                    )
 
-                data.forEach { item ->
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier =
+                            Modifier.fillMaxWidth(),
+                        horizontalArrangement =
+                            Arrangement.spacedBy(12.dp)
+                    ) {
+                        Column(
+                            modifier =
+                                Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = "Income",
+                                color = LedgerlyIncomeGreen,
+                                fontWeight = FontWeight.Bold
+                            )
+
+                            Text(
+                                text =
+                                    CurrencyFormatter.format(
+                                        amount = totalIncome,
+                                        currencyCode =
+                                            settings.currencyCode
+                                    ),
+                                color = LedgerlyIncomeGreen,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+
+                        Column(
+                            modifier =
+                                Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = "Expenses",
+                                color = LedgerlyExpenseRed,
+                                fontWeight = FontWeight.Bold
+                            )
+
+                            Text(
+                                text =
+                                    CurrencyFormatter.format(
+                                        amount = totalExpenses,
+                                        currencyCode =
+                                            settings.currencyCode
+                                    ),
+                                color = LedgerlyExpenseRed,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        item {
+            IncomeExpenseChartCard(
+                income = totalIncome,
+                expenses = totalExpenses,
+                currencyCode = settings.currencyCode
+            )
+        }
+
+        item {
+            SpendingPieChartCard(
+                data = categoryBreakdown,
+                currencyCode = settings.currencyCode
+            )
+        }
+
+        item {
+            CategoryBreakdownChartCard(
+                data = categoryBreakdown,
+                currencyCode = settings.currencyCode
+            )
+        }
+
+        item {
+            MonthlyTrendChartCard(
+                data = monthlyTrendData,
+                currencyCode = settings.currencyCode
+            )
+        }
+
+        item {
+            Row(
+                modifier =
+                    Modifier.fillMaxWidth(),
+                horizontalArrangement =
+                    Arrangement.spacedBy(12.dp)
+            ) {
+                AnalysisMiniCard(
+                    title = "Budgeted",
+                    value =
+                        CurrencyFormatter.format(
+                            amount =
+                                totalBudgetLimit,
+                            currencyCode =
+                                settings.currencyCode
+                        ),
+                    modifier =
+                        Modifier.weight(1f)
+                )
+
+                AnalysisMiniCard(
+                    title = "Remaining",
+                    value =
+                        CurrencyFormatter.format(
+                            amount =
+                                totalBudgetRemaining,
+                            currencyCode =
+                                settings.currencyCode
+                        ),
+                    modifier =
+                        Modifier.weight(1f),
+                    valueColour =
+                        if (totalBudgetRemaining < 0) {
+                            LedgerlyExpenseRed
+                        } else {
+                            LedgerlyIncomeGreen
+                        }
+                )
+            }
+        }
+
+        item {
+            Card(
+                modifier =
+                    Modifier.fillMaxWidth(),
+                shape =
+                    RoundedCornerShape(18.dp),
+                colors =
+                    CardDefaults.cardColors(
+                        containerColor =
+                            MaterialTheme
+                                .colorScheme
+                                .surfaceVariant
+                    )
+            ) {
+                Column(
+                    modifier =
+                        Modifier.padding(16.dp),
+                    verticalArrangement =
+                        Arrangement.spacedBy(10.dp)
+                ) {
+                    Text(
+                        text = "Overall Budget Use",
+                        style =
+                            MaterialTheme
+                                .typography
+                                .titleMedium,
+                        fontWeight =
+                            FontWeight.Bold
+                    )
+
+                    if (overallBudget == null) {
+                        Text(
+                            text = "No overall budget has been created yet."
+                        )
+                    } else {
+                        Text(
+                            text = "${
+                                CurrencyFormatter.format(
+                                    amount =
+                                        totalBudgetSpent,
+                                    currencyCode =
+                                        settings.currencyCode
+                                )
+                            } spent of ${
+                                CurrencyFormatter.format(
+                                    amount =
+                                        totalBudgetLimit,
+                                    currencyCode =
+                                        settings.currencyCode
+                                )
+                            }"
+                        )
+
+                        LinearProgressIndicator(
+                            progress = {
+                                budgetProgress
+                            },
+                            modifier =
+                                Modifier.fillMaxWidth()
+                        )
+
+                        Text(
+                            text = "Remaining: ${
+                                CurrencyFormatter.format(
+                                    amount =
+                                        totalBudgetRemaining,
+                                    currencyCode =
+                                        settings.currencyCode
+                                )
+                            }",
+                            color =
+                                if (totalBudgetRemaining < 0.0) {
+                                    LedgerlyExpenseRed
+                                } else {
+                                    LedgerlyIncomeGreen
+                                },
+                            fontWeight =
+                                FontWeight.Bold
+                        )
+                    }
+                }
+            }
+        }
+
+        item {
+            Button(
+                onClick = onAddBudget,
+                modifier =
+                    Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = if (overallBudget == null) {
+                        "Add Budget"
+                    } else {
+                        "Edit Budget Plan"
+                    }
+                )
+            }
+        }
+
+        item {
+            Text(
+                text = "Category Allocations",
+                style =
+                    MaterialTheme.typography
+                        .titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        if (categoryBudgets.isEmpty()) {
+            item {
+                Text(
+                    text = "No category allocations configured yet."
+                )
+            }
+        } else {
+            items(
+                categoryBudgets.take(5)
+            ) { budget ->
+                BudgetHealthCard(
+                    category =
+                        budget.category.name,
+                    progress =
+                        budget.progress
+                )
+            }
+        }
+
+        item {
+            Text(
+                text =
+                    "Top Spending Categories",
+                style =
+                    MaterialTheme.typography
+                        .titleLarge,
+                fontWeight =
+                    FontWeight.Bold
+            )
+        }
+
+        if (categoryBreakdown.isEmpty()) {
+            item {
+                Text(
+                    "No spending data available."
+                )
+            }
+        } else {
+            items(categoryBreakdown) { category ->
+
+                Card(
+                    modifier =
+                        Modifier.fillMaxWidth(),
+                    shape =
+                        RoundedCornerShape(18.dp),
+                    colors =
+                        CardDefaults.cardColors(
+                            containerColor =
+                                MaterialTheme
+                                    .colorScheme
+                                    .surfaceVariant
+                        )
+                ) {
+                    Row(
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
                         horizontalArrangement =
                             Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = item.label,
-                            style =
-                                MaterialTheme.typography.bodySmall
+                            text =
+                                category.label,
+                            fontWeight =
+                                FontWeight.Bold
                         )
 
                         Text(
                             text =
                                 CurrencyFormatter.format(
-                                    amount = item.amount,
-                                    currencyCode = currencyCode
-                                ),
-                            style =
-                                MaterialTheme.typography.bodySmall,
-                            fontWeight = FontWeight.Bold
+                                    amount =
+                                        category.amount,
+                                    currencyCode =
+                                        settings.currencyCode
+                                )
                         )
                     }
                 }
+            }
+        }
+
+        item {
+            Text(
+                text = "Budget Progress",
+                style =
+                    MaterialTheme.typography
+                        .titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        if (budgetCards.isEmpty()) {
+            item {
+                Text(
+                    "No budget configured yet."
+                )
+            }
+        } else {
+            items(budgetCards) { budget ->
+                BudgetCard(
+                    budget = budget,
+                    currencyCode =
+                        settings.currencyCode,
+                    onClick = {
+                        onEditBudget(
+                            budget.id
+                        )
+                    }
+                )
             }
         }
     }
 }
 
 @Composable
-private fun ChartCard(
-    title: String,
-    content: @Composable () -> Unit
+private fun BudgetHealthCard(
+    category: String,
+    progress: Double
 ) {
+    val percentage =
+        (progress * 100)
+            .toInt()
+            .coerceAtLeast(0)
+
+    val status =
+        when {
+            progress >= 1.0 ->
+                "Over Budget"
+
+            progress >= 0.8 ->
+                "Near Limit"
+
+            else ->
+                "Healthy"
+        }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(
+            containerColor =
+                MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement =
+                Arrangement.spacedBy(8.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement =
+                    Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = category,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Text(status)
+            }
+
+            LinearProgressIndicator(
+                progress = {
+                    progress.toFloat()
+                        .coerceIn(0f, 1f)
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Text(
+                text = "$percentage% used"
+            )
+        }
+    }
+}
+
+@Composable
+private fun AnalysisMiniCard(
+    title: String,
+    value: String,
+    modifier: Modifier = Modifier,
+    valueColour: androidx.compose.ui.graphics.Color =
+        MaterialTheme.colorScheme.onSurface
+) {
+    Card(
+        modifier = modifier,
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(
             containerColor =
@@ -319,89 +649,25 @@ private fun ChartCard(
             CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(14.dp),
             verticalArrangement =
-                Arrangement.spacedBy(14.dp)
+                Arrangement.spacedBy(6.dp)
         ) {
             Text(
                 text = title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-
-            content()
-        }
-    }
-}
-
-@Composable
-private fun ChartProgressRow(
-    label: String,
-    value: String,
-    progress: Float
-) {
-    Column(
-        verticalArrangement =
-            Arrangement.spacedBy(6.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement =
-                Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = label,
-                fontWeight = FontWeight.Medium
+                style =
+                    MaterialTheme.typography.bodyMedium
             )
 
             Text(
                 text = value,
-                fontWeight = FontWeight.Bold
+                style =
+                    MaterialTheme.typography.titleLarge,
+                fontWeight =
+                    FontWeight.Bold,
+                color =
+                    valueColour
             )
         }
-
-        LinearProgressIndicator(
-            progress = {
-                progress.coerceIn(0f, 1f)
-            },
-            modifier = Modifier.fillMaxWidth()
-        )
     }
 }
-
-@Composable
-private fun ChartLegendRow(
-    label: String,
-    value: String,
-    colourIndex: Int
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement =
-            Arrangement.SpaceBetween
-    ) {
-        Text(
-            text = label,
-            fontWeight = FontWeight.Medium
-        )
-
-        Text(
-            text = value,
-            fontWeight = FontWeight.Bold,
-            color =
-                chartColours[
-                    colourIndex % chartColours.size
-                ]
-        )
-    }
-}
-
-private val chartColours =
-    listOf(
-        androidx.compose.ui.graphics.Color(0xFF22D3EE),
-        androidx.compose.ui.graphics.Color(0xFF38BDF8),
-        androidx.compose.ui.graphics.Color(0xFF818CF8),
-        androidx.compose.ui.graphics.Color(0xFFA78BFA),
-        androidx.compose.ui.graphics.Color(0xFFF472B6),
-        androidx.compose.ui.graphics.Color(0xFFFB7185)
-    )

@@ -154,24 +154,27 @@ fun AnalysisScreen(
 
         item {
             PeriodSelector(
-                periodType =
-                    periodViewModel.periodType,
-                anchorDate =
-                    periodViewModel.anchorDate,
-                weekStartDay =
-                    settings.weekStartDay,
-                monthStartDay =
-                    settings.monthStartDay,
-                onPrevious = {
-                    periodViewModel.previousPeriod()
-                },
-                onNext = {
-                    periodViewModel.nextPeriod()
-                },
-                onPeriodTypeChanged = { type ->
-                    periodViewModel.updatePeriodType(type)
-                }
-            )
+    periodType =
+        periodViewModel.periodType,
+    anchorDate =
+        periodViewModel.anchorDate,
+    weekStartDay =
+        settings.weekStartDay,
+    monthStartDay =
+        settings.monthStartDay,
+    onPrevious = {
+        periodViewModel.previousPeriod()
+    },
+    onNext = {
+        periodViewModel.nextPeriod()
+    },
+    onToday = {
+        periodViewModel.resetToToday()
+    },
+    onPeriodTypeChanged = { type ->
+        periodViewModel.updatePeriodType(type)
+    }
+)
         }
 
         item {

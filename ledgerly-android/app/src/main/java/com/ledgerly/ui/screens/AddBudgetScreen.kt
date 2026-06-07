@@ -11,7 +11,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
@@ -19,11 +18,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -36,6 +33,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ledgerly.data.models.Category
 import com.ledgerly.ui.components.CategoryIcon
+import com.ledgerly.ui.components.LedgerlyNegativeTextButton
+import com.ledgerly.ui.components.LedgerlyPrimaryButton
+import com.ledgerly.ui.components.LedgerlySecondaryButton
 import com.ledgerly.ui.theme.LedgerlyExpenseRed
 import com.ledgerly.utils.CurrencyFormatter
 import com.ledgerly.viewmodel.BudgetViewModel
@@ -339,7 +339,8 @@ fun AddBudgetScreen(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                OutlinedButton(
+                LedgerlySecondaryButton(
+                    text = "Add Allocation",
                     onClick = {
                         val category = selectedCategory
                         val amount =
@@ -348,13 +349,13 @@ fun AddBudgetScreen(
                         if (category == null) {
                             validationMessage =
                                 "Select a category."
-                            return@OutlinedButton
+                            return@LedgerlySecondaryButton
                         }
 
                         if (amount == null || amount <= 0.0) {
                             validationMessage =
                                 "Enter a valid allocation amount."
-                            return@OutlinedButton
+                            return@LedgerlySecondaryButton
                         }
 
                         val alreadyExists =
@@ -365,7 +366,7 @@ fun AddBudgetScreen(
                         if (alreadyExists) {
                             validationMessage =
                                 "This category already has an allocation."
-                            return@OutlinedButton
+                            return@LedgerlySecondaryButton
                         }
 
                         allocations.add(
@@ -378,10 +379,9 @@ fun AddBudgetScreen(
                         allocationAmountText = ""
                         validationMessage = null
                     },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Add Allocation")
-                }
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                )
 
                 validationMessage?.let { message ->
                     Text(
@@ -393,7 +393,8 @@ fun AddBudgetScreen(
             }
         }
 
-        Button(
+        LedgerlyPrimaryButton(
+            text = "Save Budget",
             onClick = {
                 val overall =
                     overallBudgetText.toDoubleOrNull()
@@ -401,7 +402,7 @@ fun AddBudgetScreen(
                 if (overall == null || overall <= 0.0) {
                     validationMessage =
                         "Enter a valid overall budget."
-                    return@Button
+                    return@LedgerlyPrimaryButton
                 }
 
                 val validAllocations =
@@ -424,7 +425,7 @@ fun AddBudgetScreen(
                 if (allocationTotal > overall) {
                     validationMessage =
                         "Category allocations cannot exceed the overall budget."
-                    return@Button
+                    return@LedgerlyPrimaryButton
                 }
 
                 budgetViewModel.saveBudgetPlan(
@@ -434,20 +435,16 @@ fun AddBudgetScreen(
 
                 onSaved()
             },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Save Budget")
-        }
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+        )
 
-        TextButton(
+        LedgerlyNegativeTextButton(
+            text = "Cancel",
             onClick = onCancel,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(
-                text = "Cancel",
-                color = LedgerlyExpenseRed
-            )
-        }
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+        )
     }
 }
 
@@ -522,14 +519,10 @@ private fun AllocationRow(
                 }
             }
 
-            TextButton(
+            LedgerlyNegativeTextButton(
+                text = "Remove",
                 onClick = onRemove
-            ) {
-                Text(
-                    text = "Remove",
-                    color = LedgerlyExpenseRed
-                )
-            }
+            )
         }
     }
 }

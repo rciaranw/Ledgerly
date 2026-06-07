@@ -1,6 +1,9 @@
 package com.ledgerly.ui.screens
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,23 +13,32 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ledgerly.data.models.RecurringTransaction
+import com.ledgerly.ui.components.LedgerlyNegativeTextButton
+import com.ledgerly.ui.components.LedgerlyPrimaryButton
+import com.ledgerly.ui.theme.LedgerlyExpenseRed
+import com.ledgerly.ui.theme.LedgerlyIncomeGreen
 import com.ledgerly.viewmodel.CategoryViewModel
 import com.ledgerly.viewmodel.RecurringTransactionViewModel
 
@@ -87,6 +99,10 @@ fun EditRecurringTransactionScreen(
         mutableStateOf(false)
     }
 
+    var validationMessage by remember {
+        mutableStateOf<String?>(null)
+    }
+
     var showDeleteDialog by remember {
         mutableStateOf(false)
     }
@@ -95,10 +111,10 @@ fun EditRecurringTransactionScreen(
         categoryViewModel.allCategories
 
     val units = listOf(
-        "DAILY",
-        "WEEKLY",
-        "MONTHLY",
-        "YEARLY"
+        "DAILY" to "Daily",
+        "WEEKLY" to "Weekly",
+        "MONTHLY" to "Monthly",
+        "YEARLY" to "Yearly"
     )
 
     if (showDeleteDialog) {
@@ -120,10 +136,14 @@ fun EditRecurringTransactionScreen(
                                 recurring
                             )
 
+                        showDeleteDialog = false
                         onDeleted()
                     }
                 ) {
-                    Text("Delete")
+                    Text(
+                        text = "Delete",
+                        color = LedgerlyExpenseRed
+                    )
                 }
             },
             dismissButton = {
@@ -132,7 +152,10 @@ fun EditRecurringTransactionScreen(
                         showDeleteDialog = false
                     }
                 ) {
-                    Text("Cancel")
+                    Text(
+                        text = "Cancel",
+                        color = LedgerlyExpenseRed
+                    )
                 }
             }
         )
@@ -167,36 +190,64 @@ fun EditRecurringTransactionScreen(
                 verticalArrangement =
                     Arrangement.spacedBy(16.dp)
             ) {
+                IncomeExpenseToggle(
+                    isIncome = isIncome,
+                    onSelected = {
+                        isIncome = it
+                    }
+                )
 
-                Row(
-                    horizontalArrangement =
-                        Arrangement.spacedBy(12.dp)
+                ExposedDropdownMenuBox(
+                    expanded = categoryExpanded,
+                    onExpandedChange = {
+                        categoryExpanded =
+                            !categoryExpanded
+                    }
                 ) {
-                    FilterChip(
-                        selected = !isIncome,
-                        onClick = {
-                            isIncome = false
-                        },
+                    OutlinedTextField(
+                        value = selectedCategory.name,
+                        onValueChange = {},
+                        readOnly = true,
                         label = {
-                            Text("Expense")
-                        }
+                            Text("Category")
+                        },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults
+                                .TrailingIcon(
+                                    expanded =
+                                        categoryExpanded
+                                )
+                        },
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth()
                     )
 
-                    FilterChip(
-                        selected = isIncome,
-                        onClick = {
-                            isIncome = true
-                        },
-                        label = {
-                            Text("Income")
+                    ExposedDropdownMenu(
+                        expanded = categoryExpanded,
+                        onDismissRequest = {
+                            categoryExpanded = false
                         }
-                    )
+                    ) {
+                        categories.forEach { category ->
+                            DropdownMenuItem(
+                                text = {
+                                    Text(category.name)
+                                },
+                                onClick = {
+                                    selectedCategory = category
+                                    categoryExpanded = false
+                                }
+                            )
+                        }
+                    }
                 }
 
                 OutlinedTextField(
                     value = title,
                     onValueChange = {
                         title = it
+                        validationMessage = null
                     },
                     label = {
                         Text("Title")
@@ -208,6 +259,7 @@ fun EditRecurringTransactionScreen(
                     value = amountText,
                     onValueChange = {
                         amountText = it
+                        validationMessage = null
                     },
                     label = {
                         Text("Amount")
@@ -219,6 +271,7 @@ fun EditRecurringTransactionScreen(
                     value = intervalText,
                     onValueChange = {
                         intervalText = it
+                        validationMessage = null
                     },
                     label = {
                         Text("Every")
@@ -233,8 +286,13 @@ fun EditRecurringTransactionScreen(
                             !unitExpanded
                     }
                 ) {
+                    val selectedUnitLabel =
+                        units.firstOrNull {
+                            it.first == selectedUnit
+                        }?.second ?: "Monthly"
+
                     OutlinedTextField(
-                        value = selectedUnit,
+                        value = selectedUnitLabel,
                         onValueChange = {},
                         readOnly = true,
                         label = {
@@ -244,7 +302,7 @@ fun EditRecurringTransactionScreen(
                             ExposedDropdownMenuDefaults
                                 .TrailingIcon(
                                     expanded =
-                                    unitExpanded
+                                        unitExpanded
                                 )
                         },
                         modifier = Modifier
@@ -261,10 +319,10 @@ fun EditRecurringTransactionScreen(
                         units.forEach { unit ->
                             DropdownMenuItem(
                                 text = {
-                                    Text(unit)
+                                    Text(unit.second)
                                 },
                                 onClick = {
-                                    selectedUnit = unit
+                                    selectedUnit = unit.first
                                     unitExpanded = false
                                 }
                             )
@@ -272,24 +330,55 @@ fun EditRecurringTransactionScreen(
                     }
                 }
 
-                Button(
+                OutlinedTextField(
+                    value = notes,
+                    onValueChange = {
+                        notes = it
+                    },
+                    label = {
+                        Text("Notes")
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                validationMessage?.let { message ->
+                    Text(
+                        text = message,
+                        color =
+                            MaterialTheme.colorScheme.error
+                    )
+                }
+
+                LedgerlyPrimaryButton(
+                    text = "Save Changes",
                     onClick = {
                         val amount =
                             amountText.toDoubleOrNull()
-                                ?: return@Button
 
                         val interval =
                             intervalText.toIntOrNull()
-                                ?: return@Button
+
+                        if (amount == null || amount <= 0.0) {
+                            validationMessage =
+                                "Please enter a valid amount."
+                            return@LedgerlyPrimaryButton
+                        }
+
+                        if (interval == null || interval <= 0) {
+                            validationMessage =
+                                "Please enter a valid interval."
+                            return@LedgerlyPrimaryButton
+                        }
 
                         recurringTransactionViewModel
                             .saveRecurringTransaction(
                                 recurring.copy(
-                                    title = title,
+                                    title = title.ifBlank {
+                                        selectedCategory.name
+                                    },
                                     notes = notes,
                                     amount = amount,
-                                    category =
-                                    selectedCategory,
+                                    category = selectedCategory,
                                     isIncome = isIncome,
                                     interval = interval,
                                     unit = selectedUnit
@@ -298,27 +387,107 @@ fun EditRecurringTransactionScreen(
 
                         onSaved()
                     },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Save Changes")
-                }
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                )
 
-                TextButton(
+                LedgerlyNegativeTextButton(
+                    text = "Delete Recurring",
                     onClick = {
                         showDeleteDialog = true
                     },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Delete Recurring Transaction")
-                }
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                )
 
-                TextButton(
+                LedgerlyNegativeTextButton(
+                    text = "Cancel",
                     onClick = onCancel,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Cancel")
-                }
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                )
             }
         }
+    }
+}
+
+@Composable
+private fun IncomeExpenseToggle(
+    isIncome: Boolean,
+    onSelected: (Boolean) -> Unit
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(50),
+        color = MaterialTheme.colorScheme.background
+    ) {
+        Row(
+            modifier = Modifier.padding(4.dp),
+            horizontalArrangement =
+                Arrangement.spacedBy(4.dp)
+        ) {
+            ToggleOption(
+                text = "Expense",
+                selected = !isIncome,
+                selectedColour = LedgerlyExpenseRed,
+                onClick = {
+                    onSelected(false)
+                },
+                modifier = Modifier.weight(1f)
+            )
+
+            ToggleOption(
+                text = "Income",
+                selected = isIncome,
+                selectedColour = LedgerlyIncomeGreen,
+                onClick = {
+                    onSelected(true)
+                },
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+@Composable
+private fun ToggleOption(
+    text: String,
+    selected: Boolean,
+    selectedColour: androidx.compose.ui.graphics.Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .clip(
+                RoundedCornerShape(50)
+            )
+            .background(
+                if (selected) {
+                    selectedColour
+                } else {
+                    MaterialTheme.colorScheme.surfaceVariant
+                }
+            )
+            .clickable {
+                onClick()
+            }
+            .padding(
+                vertical = 10.dp
+            ),
+        contentAlignment =
+            Alignment.Center
+    ) {
+        Text(
+            text = text,
+            color =
+                if (selected) {
+                    MaterialTheme.colorScheme.onPrimary
+                } else {
+                    MaterialTheme.colorScheme.onSurface
+                },
+            fontWeight =
+                FontWeight.Bold
+        )
     }
 }

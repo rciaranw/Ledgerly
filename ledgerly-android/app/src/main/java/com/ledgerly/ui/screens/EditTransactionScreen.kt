@@ -12,21 +12,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,70 +32,56 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.ledgerly.data.models.Transaction
+import com.ledgerly.data.models.DefaultCategories
+import com.ledgerly.ui.components.LedgerlyNegativeTextButton
+import com.ledgerly.ui.components.LedgerlyPrimaryButton
 import com.ledgerly.ui.theme.LedgerlyExpenseRed
 import com.ledgerly.ui.theme.LedgerlyIncomeGreen
-import com.ledgerly.viewmodel.BudgetViewModel
 import com.ledgerly.viewmodel.CategoryViewModel
-import com.ledgerly.viewmodel.TransactionViewModel
-import java.time.Instant
-import java.time.ZoneId
+import com.ledgerly.viewmodel.RecurringTransactionViewModel
+import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditTransactionScreen(
-    transactionId: String,
-    transactionViewModel: TransactionViewModel,
-    budgetViewModel: BudgetViewModel,
+fun AddRecurringTransactionScreen(
+    recurringTransactionViewModel: RecurringTransactionViewModel,
     categoryViewModel: CategoryViewModel,
     onSaved: () -> Unit,
-    onDeleted: () -> Unit,
     onCancel: () -> Unit
 ) {
-    val transaction =
-        transactionViewModel.transactions.firstOrNull {
-            it.id == transactionId
-        }
-
-    if (transaction == null) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-        ) {
-            Text(
-                text = "Transaction not found"
-            )
-        }
-
-        return
-    }
-
     var isIncome by remember {
-        mutableStateOf(transaction.isIncome)
+        mutableStateOf(false)
     }
 
     var selectedCategory by remember {
-        mutableStateOf(transaction.category)
+        mutableStateOf(DefaultCategories.fallback)
     }
 
     var title by remember {
-        mutableStateOf(transaction.title)
+        mutableStateOf("")
     }
 
     var notes by remember {
-        mutableStateOf(transaction.notes)
+        mutableStateOf("")
     }
 
     var amountText by remember {
-        mutableStateOf(transaction.amount.toString())
+        mutableStateOf("")
     }
 
-    var selectedDate by remember {
-        mutableStateOf(transaction.date)
+    var intervalText by remember {
+        mutableStateOf("1")
+    }
+
+    var selectedUnit by remember {
+        mutableStateOf("MONTHLY")
     }
 
     var categoryExpanded by remember {
+        mutableStateOf(false)
+    }
+
+    var unitExpanded by remember {
         mutableStateOf(false)
     }
 
@@ -108,111 +89,15 @@ fun EditTransactionScreen(
         mutableStateOf<String?>(null)
     }
 
-    var showDeleteDialog by remember {
-        mutableStateOf(false)
-    }
-
-    var showDatePicker by remember {
-        mutableStateOf(false)
-    }
-
     val categories =
         categoryViewModel.allCategories
 
-    if (showDatePicker) {
-        val datePickerState =
-            rememberDatePickerState()
-
-        DatePickerDialog(
-            onDismissRequest = {
-                showDatePicker = false
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        datePickerState.selectedDateMillis
-                            ?.let { millis ->
-                                selectedDate = Instant
-                                    .ofEpochMilli(millis)
-                                    .atZone(
-                                        ZoneId.systemDefault()
-                                    )
-                                    .toLocalDate()
-                            }
-
-                        showDatePicker = false
-                    }
-                ) {
-                    Text("OK")
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = {
-                        showDatePicker = false
-                    }
-                ) {
-                    Text(
-                        text = "Cancel",
-                        color = LedgerlyExpenseRed
-                    )
-                }
-            }
-        ) {
-            DatePicker(
-                state = datePickerState
-            )
-        }
-    }
-
-    if (showDeleteDialog) {
-        AlertDialog(
-            onDismissRequest = {
-                showDeleteDialog = false
-            },
-            title = {
-                Text("Delete Transaction?")
-            },
-            text = {
-                Text(
-                    "This transaction will be permanently deleted."
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        transactionViewModel.deleteTransaction(
-                            transaction
-                        )
-
-                        budgetViewModel.refreshCurrentMonthBudgets(
-                            transactionViewModel.transactions
-                        )
-
-                        showDeleteDialog = false
-                        onDeleted()
-                    }
-                ) {
-                    Text(
-                        text = "Delete",
-                        color = LedgerlyExpenseRed
-                    )
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = {
-                        showDeleteDialog = false
-                    }
-                ) {
-                    Text(
-                        text = "Cancel",
-                        color = LedgerlyExpenseRed
-                    )
-                }
-            }
-        )
-    }
+    val units = listOf(
+        "DAILY" to "Daily",
+        "WEEKLY" to "Weekly",
+        "MONTHLY" to "Monthly",
+        "YEARLY" to "Yearly"
+    )
 
     Column(
         modifier = Modifier
@@ -225,7 +110,7 @@ fun EditTransactionScreen(
             Arrangement.spacedBy(16.dp)
     ) {
         Text(
-            text = "Edit Transaction",
+            text = "Add Recurring",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold
         )
@@ -318,23 +203,64 @@ fun EditTransactionScreen(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            showDatePicker = true
-                        }
+                OutlinedTextField(
+                    value = intervalText,
+                    onValueChange = {
+                        intervalText = it
+                    },
+                    label = {
+                        Text("Every")
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                ExposedDropdownMenuBox(
+                    expanded = unitExpanded,
+                    onExpandedChange = {
+                        unitExpanded = !unitExpanded
+                    }
                 ) {
+                    val selectedUnitLabel =
+                        units.firstOrNull {
+                            it.first == selectedUnit
+                        }?.second ?: "Monthly"
+
                     OutlinedTextField(
-                        value = selectedDate.toString(),
+                        value = selectedUnitLabel,
                         onValueChange = {},
                         readOnly = true,
-                        enabled = false,
                         label = {
-                            Text("Date")
+                            Text("Frequency")
                         },
-                        modifier = Modifier.fillMaxWidth()
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults
+                                .TrailingIcon(
+                                    expanded = unitExpanded
+                                )
+                        },
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth()
                     )
+
+                    ExposedDropdownMenu(
+                        expanded = unitExpanded,
+                        onDismissRequest = {
+                            unitExpanded = false
+                        }
+                    ) {
+                        units.forEach { unit ->
+                            DropdownMenuItem(
+                                text = {
+                                    Text(unit.second)
+                                },
+                                onClick = {
+                                    selectedUnit = unit.first
+                                    unitExpanded = false
+                                }
+                            )
+                        }
+                    }
                 }
 
                 OutlinedTextField(
@@ -351,75 +277,59 @@ fun EditTransactionScreen(
                 validationMessage?.let { message ->
                     Text(
                         text = message,
-                        color = MaterialTheme.colorScheme.error
+                        color =
+                            MaterialTheme.colorScheme.error
                     )
                 }
 
-                Button(
+                LedgerlyPrimaryButton(
+                    text = "Save Recurring",
                     onClick = {
                         val amount =
                             amountText.toDoubleOrNull()
 
+                        val interval =
+                            intervalText.toIntOrNull()
+
                         if (amount == null || amount <= 0.0) {
                             validationMessage =
                                 "Please enter a valid amount."
-
-                            return@Button
+                            return@LedgerlyPrimaryButton
                         }
 
-                        val updatedTransaction =
-                            Transaction(
-                                id = transaction.id,
+                        if (interval == null || interval <= 0) {
+                            validationMessage =
+                                "Please enter a valid interval."
+                            return@LedgerlyPrimaryButton
+                        }
+
+                        recurringTransactionViewModel
+                            .addRecurringTransaction(
                                 title = title.ifBlank {
                                     selectedCategory.name
                                 },
                                 notes = notes,
                                 amount = amount,
-                                date = selectedDate,
                                 category = selectedCategory,
                                 isIncome = isIncome,
-                                recurringRule =
-                                    transaction.recurringRule
-                            )
-
-                        transactionViewModel
-                            .updateTransaction(
-                                updatedTransaction
-                            )
-
-                        budgetViewModel
-                            .refreshCurrentMonthBudgets(
-                                transactionViewModel.transactions
+                                interval = interval,
+                                unit = selectedUnit,
+                                startDate = LocalDate.now(),
+                                endDate = null
                             )
 
                         onSaved()
                     },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Save Changes")
-                }
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                )
 
-                TextButton(
-                    onClick = {
-                        showDeleteDialog = true
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = "Delete Transaction",
-                        color = LedgerlyExpenseRed
-                    )
-                }
-
-                TextButton(
+                LedgerlyNegativeTextButton(
+                    text = "Cancel",
                     onClick = onCancel,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = "Cancel",
-                        color = LedgerlyExpenseRed
-                    )
-                }
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                )
             }
         }
     }
@@ -430,7 +340,7 @@ private fun IncomeExpenseToggle(
     isIncome: Boolean,
     onSelected: (Boolean) -> Unit
 ) {
-    androidx.compose.material3.Surface(
+    Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(50),
         color = MaterialTheme.colorScheme.background
@@ -489,16 +399,19 @@ private fun ToggleOption(
             .padding(
                 vertical = 10.dp
             ),
-        contentAlignment = Alignment.Center
+        contentAlignment =
+            Alignment.Center
     ) {
         Text(
             text = text,
-            color = if (selected) {
-                MaterialTheme.colorScheme.onPrimary
-            } else {
-                MaterialTheme.colorScheme.onSurface
-            },
-            fontWeight = FontWeight.Bold
+            color =
+                if (selected) {
+                    MaterialTheme.colorScheme.onPrimary
+                } else {
+                    MaterialTheme.colorScheme.onSurface
+                },
+            fontWeight =
+                FontWeight.Bold
         )
     }
 }
