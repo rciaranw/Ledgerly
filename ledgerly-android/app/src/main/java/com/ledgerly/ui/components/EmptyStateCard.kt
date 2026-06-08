@@ -20,10 +20,11 @@ import androidx.compose.ui.unit.dp
 fun EmptyStateCard(
     emoji: String,
     title: String,
-    message: String
+    message: String,
+    modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
             containerColor =
