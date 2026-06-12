@@ -3,6 +3,7 @@ package com.ledgerly.ui.navigation
 import android.app.Application
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.ReceiptLong
@@ -35,6 +36,7 @@ import com.ledgerly.ui.screens.AddCategoryScreen
 import com.ledgerly.ui.screens.AddRecurringTransactionScreen
 import com.ledgerly.ui.screens.AddTransactionScreen
 import com.ledgerly.ui.screens.AnalysisScreen
+import com.ledgerly.ui.screens.BudgetScreen
 import com.ledgerly.ui.screens.EditBudgetScreen
 import com.ledgerly.ui.screens.EditRecurringTransactionScreen
 import com.ledgerly.ui.screens.EditTransactionScreen
@@ -57,57 +59,79 @@ sealed class LedgerlyTab(
 ) {
     data object Home :
         LedgerlyTab(
-            "home",
-            "Home",
-            Icons.Filled.Home
+            route = "home",
+            label = "Home",
+            icon = Icons.Filled.Home
         )
 
     data object Transactions :
         LedgerlyTab(
-            "transactions",
-            "Transactions",
-            Icons.Filled.ReceiptLong
+            route = "transactions",
+            label = "Transactions",
+            icon = Icons.Filled.ReceiptLong
         )
 
     data object Analysis :
         LedgerlyTab(
-            "analysis",
-            "Analysis",
-            Icons.Filled.Analytics
+            route = "analysis",
+            label = "Analysis",
+            icon = Icons.Filled.Analytics
+        )
+
+    data object Budget :
+        LedgerlyTab(
+            route = "budget",
+            label = "Budget",
+            icon = Icons.Filled.AccountBalanceWallet
         )
 
     data object Settings :
         LedgerlyTab(
-            "settings",
-            "Settings",
-            Icons.Filled.Settings
+            route = "settings",
+            label = "Settings",
+            icon = Icons.Filled.Settings
         )
 
     data object AddTransaction :
-        LedgerlyTab("add_transaction", "Add Transaction")
+        LedgerlyTab(
+            route = "add_transaction",
+            label = "Add Transaction"
+        )
 
     data object AddBudget :
-        LedgerlyTab("add_budget", "Add Budget")
+        LedgerlyTab(
+            route = "add_budget",
+            label = "Add Budget"
+        )
 
     data object AddCategory :
-        LedgerlyTab("add_category", "Add Category")
+        LedgerlyTab(
+            route = "add_category",
+            label = "Add Category"
+        )
 
     data object Export :
-        LedgerlyTab("export", "Export")
+        LedgerlyTab(
+            route = "export",
+            label = "Export"
+        )
 
     data object AddRecurringTransaction :
-        LedgerlyTab("add_recurring_transaction", "Add Recurring")
+        LedgerlyTab(
+            route = "add_recurring_transaction",
+            label = "Add Recurring"
+        )
 
     data object RecurringTransactions :
         LedgerlyTab(
-            "recurring_transactions",
-            "Recurring Transactions"
+            route = "recurring_transactions",
+            label = "Recurring Transactions"
         )
 
     data object EditRecurringTransaction :
         LedgerlyTab(
-            "edit_recurring_transaction/{recurringId}",
-            "Edit Recurring"
+            route = "edit_recurring_transaction/{recurringId}",
+            label = "Edit Recurring"
         ) {
         fun createRoute(
             recurringId: String
@@ -118,8 +142,8 @@ sealed class LedgerlyTab(
 
     data object EditTransaction :
         LedgerlyTab(
-            "edit_transaction/{transactionId}",
-            "Edit Transaction"
+            route = "edit_transaction/{transactionId}",
+            label = "Edit Transaction"
         ) {
         fun createRoute(
             transactionId: String
@@ -130,8 +154,8 @@ sealed class LedgerlyTab(
 
     data object EditBudget :
         LedgerlyTab(
-            "edit_budget/{budgetId}",
-            "Edit Budget"
+            route = "edit_budget/{budgetId}",
+            label = "Edit Budget"
         ) {
         fun createRoute(
             budgetId: String
@@ -143,46 +167,64 @@ sealed class LedgerlyTab(
 
 @Composable
 fun LedgerlyNavigation() {
-    val navController = rememberNavController()
+    val navController =
+        rememberNavController()
 
     val application =
         LocalContext.current.applicationContext as Application
 
-    val transactionViewModel: TransactionViewModel = viewModel(
-        factory = ViewModelProvider.AndroidViewModelFactory
-            .getInstance(application)
-    )
+    val transactionViewModel:
+        TransactionViewModel =
+        viewModel(
+            factory =
+                ViewModelProvider.AndroidViewModelFactory
+                    .getInstance(application)
+        )
 
-    val budgetViewModel: BudgetViewModel = viewModel(
-        factory = ViewModelProvider.AndroidViewModelFactory
-            .getInstance(application)
-    )
+    val budgetViewModel:
+        BudgetViewModel =
+        viewModel(
+            factory =
+                ViewModelProvider.AndroidViewModelFactory
+                    .getInstance(application)
+        )
 
-    val settingsViewModel: SettingsViewModel = viewModel(
-        factory = ViewModelProvider.AndroidViewModelFactory
-            .getInstance(application)
-    )
+    val settingsViewModel:
+        SettingsViewModel =
+        viewModel(
+            factory =
+                ViewModelProvider.AndroidViewModelFactory
+                    .getInstance(application)
+        )
 
-    val categoryViewModel: CategoryViewModel = viewModel(
-        factory = ViewModelProvider.AndroidViewModelFactory
-            .getInstance(application)
-    )
+    val categoryViewModel:
+        CategoryViewModel =
+        viewModel(
+            factory =
+                ViewModelProvider.AndroidViewModelFactory
+                    .getInstance(application)
+        )
 
     val recurringTransactionViewModel:
         RecurringTransactionViewModel =
         viewModel(
-            factory = ViewModelProvider.AndroidViewModelFactory
-                .getInstance(application)
+            factory =
+                ViewModelProvider.AndroidViewModelFactory
+                    .getInstance(application)
         )
 
-    val periodViewModel: PeriodViewModel = viewModel()
+    val periodViewModel:
+        PeriodViewModel =
+        viewModel()
 
     var recurringProcessed by remember {
         mutableStateOf(false)
     }
 
     LaunchedEffect(
-        recurringTransactionViewModel.recurringTransactions.size
+        recurringTransactionViewModel
+            .recurringTransactions
+            .size
     ) {
         if (!recurringProcessed) {
             val generatedTransactions =
@@ -194,9 +236,10 @@ fun LedgerlyNavigation() {
                     generatedTransactions
                 )
 
-                budgetViewModel.refreshCurrentMonthBudgets(
-                    transactionViewModel.transactions
-                )
+                budgetViewModel
+                    .refreshCurrentMonthBudgets(
+                        transactionViewModel.transactions
+                    )
             }
 
             recurringProcessed = true
@@ -208,6 +251,7 @@ fun LedgerlyNavigation() {
             LedgerlyTab.Home,
             LedgerlyTab.Transactions,
             LedgerlyTab.Analysis,
+            LedgerlyTab.Budget,
             LedgerlyTab.Settings
         )
     }
@@ -216,22 +260,28 @@ fun LedgerlyNavigation() {
         bottomBar = {
             NavigationBar {
                 val navBackStackEntry by
-                    navController.currentBackStackEntryAsState()
+                    navController
+                        .currentBackStackEntryAsState()
 
                 val currentDestination =
                     navBackStackEntry?.destination
 
                 tabs.forEach { tab ->
                     NavigationBarItem(
-                        selected = currentDestination
-                            ?.hierarchy
-                            ?.any {
-                                it.route == tab.route
-                            } == true,
+                        selected =
+                            currentDestination
+                                ?.hierarchy
+                                ?.any {
+                                    it.route == tab.route
+                                } == true,
                         onClick = {
-                            navController.navigate(tab.route) {
+                            navController.navigate(
+                                tab.route
+                            ) {
                                 popUpTo(
-                                    navController.graph.startDestinationId
+                                    navController
+                                        .graph
+                                        .startDestinationId
                                 ) {
                                     saveState = true
                                 }
@@ -244,113 +294,199 @@ fun LedgerlyNavigation() {
                             tab.icon?.let { icon ->
                                 Icon(
                                     imageVector = icon,
-                                    contentDescription = tab.label
+                                    contentDescription =
+                                        tab.label
                                 )
                             }
                         },
                         label = {
-                            Text(tab.label)
+                            Text(
+                                text = tab.label
+                            )
                         }
                     )
                 }
             }
         }
     ) { innerPadding ->
-
         NavHost(
             navController = navController,
-            startDestination = LedgerlyTab.Home.route,
-            modifier = Modifier.padding(innerPadding)
+            startDestination =
+                LedgerlyTab.Home.route,
+            modifier =
+                Modifier.padding(innerPadding)
         ) {
-            composable(LedgerlyTab.Home.route) {
+            composable(
+                LedgerlyTab.Home.route
+            ) {
                 HomeScreen(
-                    transactionViewModel = transactionViewModel,
-                    budgetViewModel = budgetViewModel,
-                    settingsViewModel = settingsViewModel,
+                    transactionViewModel =
+                        transactionViewModel,
+                    budgetViewModel =
+                        budgetViewModel,
+                    settingsViewModel =
+                        settingsViewModel,
                     recurringTransactionViewModel =
                         recurringTransactionViewModel,
-                    periodViewModel = periodViewModel
+                    periodViewModel =
+                        periodViewModel
                 )
             }
 
-            composable(LedgerlyTab.Transactions.route) {
+            composable(
+                LedgerlyTab.Transactions.route
+            ) {
                 TransactionsScreen(
-                    transactionViewModel = transactionViewModel,
-                    settingsViewModel = settingsViewModel,
-                    categoryViewModel = categoryViewModel,
+                    transactionViewModel =
+                        transactionViewModel,
+                    settingsViewModel =
+                        settingsViewModel,
+                    categoryViewModel =
+                        categoryViewModel,
                     onAddTransaction = {
                         navController.navigate(
-                            LedgerlyTab.AddTransaction.route
+                            LedgerlyTab
+                                .AddTransaction
+                                .route
                         )
                     },
                     onAddRecurringTransaction = {
                         navController.navigate(
-                            LedgerlyTab.AddRecurringTransaction.route
+                            LedgerlyTab
+                                .AddRecurringTransaction
+                                .route
                         )
                     },
-                    onEditTransaction = { transactionId ->
+                    onEditTransaction = {
+                        transactionId ->
                         navController.navigate(
-                            LedgerlyTab.EditTransaction
-                                .createRoute(transactionId)
+                            LedgerlyTab
+                                .EditTransaction
+                                .createRoute(
+                                    transactionId
+                                )
                         )
                     }
                 )
             }
 
-            composable(LedgerlyTab.Analysis.route) {
+            composable(
+                LedgerlyTab.Analysis.route
+            ) {
                 AnalysisScreen(
-                    transactionViewModel = transactionViewModel,
-                    budgetViewModel = budgetViewModel,
-                    settingsViewModel = settingsViewModel,
-                    periodViewModel = periodViewModel,
+                    transactionViewModel =
+                        transactionViewModel,
+                    budgetViewModel =
+                        budgetViewModel,
+                    settingsViewModel =
+                        settingsViewModel,
+                    periodViewModel =
+                        periodViewModel,
                     onAddBudget = {
                         navController.navigate(
-                            LedgerlyTab.AddBudget.route
+                            LedgerlyTab
+                                .AddBudget
+                                .route
                         )
                     },
-                    onEditBudget = { budgetId ->
+                    onEditBudget = {
+                        budgetId ->
                         navController.navigate(
-                            LedgerlyTab.EditBudget
-                                .createRoute(budgetId)
+                            LedgerlyTab
+                                .EditBudget
+                                .createRoute(
+                                    budgetId
+                                )
                         )
                     }
                 )
             }
 
-            composable(LedgerlyTab.Settings.route) {
+            composable(
+                LedgerlyTab.Budget.route
+            ) {
+                BudgetScreen(
+                    transactionViewModel =
+                        transactionViewModel,
+                    budgetViewModel =
+                        budgetViewModel,
+                    settingsViewModel =
+                        settingsViewModel,
+                    periodViewModel =
+                        periodViewModel,
+                    onAddBudget = {
+                        navController.navigate(
+                            LedgerlyTab
+                                .AddBudget
+                                .route
+                        )
+                    },
+                    onEditBudget = {
+                        budgetId ->
+                        navController.navigate(
+                            LedgerlyTab
+                                .EditBudget
+                                .createRoute(
+                                    budgetId
+                                )
+                        )
+                    }
+                )
+            }
+
+            composable(
+                LedgerlyTab.Settings.route
+            ) {
                 SettingsScreen(
-                    budgetViewModel = budgetViewModel,
-                    settingsViewModel = settingsViewModel,
-                    categoryViewModel = categoryViewModel,
+                    budgetViewModel =
+                        budgetViewModel,
+                    settingsViewModel =
+                        settingsViewModel,
+                    categoryViewModel =
+                        categoryViewModel,
                     onAddCategory = {
                         navController.navigate(
-                            LedgerlyTab.AddCategory.route
+                            LedgerlyTab
+                                .AddCategory
+                                .route
                         )
                     },
                     onViewRecurringTransactions = {
                         navController.navigate(
-                            LedgerlyTab.RecurringTransactions.route
+                            LedgerlyTab
+                                .RecurringTransactions
+                                .route
                         )
                     },
                     onExport = {
                         navController.navigate(
-                            LedgerlyTab.Export.route
+                            LedgerlyTab
+                                .Export
+                                .route
                         )
                     }
                 )
             }
 
-            composable(LedgerlyTab.Export.route) {
+            composable(
+                LedgerlyTab.Export.route
+            ) {
                 ExportScreen(
-                    transactionViewModel = transactionViewModel
+                    transactionViewModel =
+                        transactionViewModel
                 )
             }
 
-            composable(LedgerlyTab.AddTransaction.route) {
+            composable(
+                LedgerlyTab.AddTransaction.route
+            ) {
                 AddTransactionScreen(
-                    transactionViewModel = transactionViewModel,
-                    budgetViewModel = budgetViewModel,
-                    categoryViewModel = categoryViewModel,
+                    transactionViewModel =
+                        transactionViewModel,
+                    budgetViewModel =
+                        budgetViewModel,
+                    categoryViewModel =
+                        categoryViewModel,
                     onSaved = {
                         navController.popBackStack()
                     },
@@ -360,10 +496,14 @@ fun LedgerlyNavigation() {
                 )
             }
 
-            composable(LedgerlyTab.AddBudget.route) {
+            composable(
+                LedgerlyTab.AddBudget.route
+            ) {
                 AddBudgetScreen(
-                    budgetViewModel = budgetViewModel,
-                    categoryViewModel = categoryViewModel,
+                    budgetViewModel =
+                        budgetViewModel,
+                    categoryViewModel =
+                        categoryViewModel,
                     onSaved = {
                         navController.popBackStack()
                     },
@@ -373,9 +513,12 @@ fun LedgerlyNavigation() {
                 )
             }
 
-            composable(LedgerlyTab.AddCategory.route) {
+            composable(
+                LedgerlyTab.AddCategory.route
+            ) {
                 AddCategoryScreen(
-                    categoryViewModel = categoryViewModel,
+                    categoryViewModel =
+                        categoryViewModel,
                     onSaved = {
                         navController.popBackStack()
                     },
@@ -385,11 +528,14 @@ fun LedgerlyNavigation() {
                 )
             }
 
-            composable(LedgerlyTab.AddRecurringTransaction.route) {
+            composable(
+                LedgerlyTab.AddRecurringTransaction.route
+            ) {
                 AddRecurringTransactionScreen(
                     recurringTransactionViewModel =
                         recurringTransactionViewModel,
-                    categoryViewModel = categoryViewModel,
+                    categoryViewModel =
+                        categoryViewModel,
                     onSaved = {
                         navController.popBackStack()
                     },
@@ -399,42 +545,62 @@ fun LedgerlyNavigation() {
                 )
             }
 
-            composable(LedgerlyTab.RecurringTransactions.route) {
+            composable(
+                LedgerlyTab.RecurringTransactions.route
+            ) {
                 RecurringTransactionsScreen(
                     recurringTransactionViewModel =
                         recurringTransactionViewModel,
                     onAddRecurring = {
                         navController.navigate(
-                            LedgerlyTab.AddRecurringTransaction.route
+                            LedgerlyTab
+                                .AddRecurringTransaction
+                                .route
                         )
                     },
-                    onEditRecurring = { recurringId ->
+                    onEditRecurring = {
+                        recurringId ->
                         navController.navigate(
-                            LedgerlyTab.EditRecurringTransaction
-                                .createRoute(recurringId)
+                            LedgerlyTab
+                                .EditRecurringTransaction
+                                .createRoute(
+                                    recurringId
+                                )
                         )
                     }
                 )
             }
 
             composable(
-                route = LedgerlyTab.EditRecurringTransaction.route,
-                arguments = listOf(
-                    navArgument("recurringId") {
-                        type = NavType.StringType
-                    }
-                )
+                route =
+                    LedgerlyTab
+                        .EditRecurringTransaction
+                        .route,
+                arguments =
+                    listOf(
+                        navArgument(
+                            "recurringId"
+                        ) {
+                            type =
+                                NavType.StringType
+                        }
+                    )
             ) { backStackEntry ->
                 val recurringId =
-                    backStackEntry.arguments
-                        ?.getString("recurringId")
+                    backStackEntry
+                        .arguments
+                        ?.getString(
+                            "recurringId"
+                        )
                         ?: ""
 
                 EditRecurringTransactionScreen(
-                    recurringId = recurringId,
+                    recurringId =
+                        recurringId,
                     recurringTransactionViewModel =
                         recurringTransactionViewModel,
-                    categoryViewModel = categoryViewModel,
+                    categoryViewModel =
+                        categoryViewModel,
                     onSaved = {
                         navController.popBackStack()
                     },
@@ -448,23 +614,37 @@ fun LedgerlyNavigation() {
             }
 
             composable(
-                route = LedgerlyTab.EditTransaction.route,
-                arguments = listOf(
-                    navArgument("transactionId") {
-                        type = NavType.StringType
-                    }
-                )
+                route =
+                    LedgerlyTab
+                        .EditTransaction
+                        .route,
+                arguments =
+                    listOf(
+                        navArgument(
+                            "transactionId"
+                        ) {
+                            type =
+                                NavType.StringType
+                        }
+                    )
             ) { backStackEntry ->
                 val transactionId =
-                    backStackEntry.arguments
-                        ?.getString("transactionId")
+                    backStackEntry
+                        .arguments
+                        ?.getString(
+                            "transactionId"
+                        )
                         ?: ""
 
                 EditTransactionScreen(
-                    transactionId = transactionId,
-                    transactionViewModel = transactionViewModel,
-                    budgetViewModel = budgetViewModel,
-                    categoryViewModel = categoryViewModel,
+                    transactionId =
+                        transactionId,
+                    transactionViewModel =
+                        transactionViewModel,
+                    budgetViewModel =
+                        budgetViewModel,
+                    categoryViewModel =
+                        categoryViewModel,
                     onSaved = {
                         navController.popBackStack()
                     },
@@ -478,21 +658,33 @@ fun LedgerlyNavigation() {
             }
 
             composable(
-                route = LedgerlyTab.EditBudget.route,
-                arguments = listOf(
-                    navArgument("budgetId") {
-                        type = NavType.StringType
-                    }
-                )
+                route =
+                    LedgerlyTab
+                        .EditBudget
+                        .route,
+                arguments =
+                    listOf(
+                        navArgument(
+                            "budgetId"
+                        ) {
+                            type =
+                                NavType.StringType
+                        }
+                    )
             ) { backStackEntry ->
                 val budgetId =
-                    backStackEntry.arguments
-                        ?.getString("budgetId")
+                    backStackEntry
+                        .arguments
+                        ?.getString(
+                            "budgetId"
+                        )
                         ?: ""
 
                 EditBudgetScreen(
-                    budgetId = budgetId,
-                    budgetViewModel = budgetViewModel,
+                    budgetId =
+                        budgetId,
+                    budgetViewModel =
+                        budgetViewModel,
                     onSaved = {
                         navController.popBackStack()
                     },
