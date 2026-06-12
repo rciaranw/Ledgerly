@@ -512,7 +512,7 @@ fun SettingsScreen(
 
                 InfoRow(
                     label = "Version",
-                    value = "1.0.0"
+                    value = "v0.1.0-Alpha"
                 )
 
                 InfoRow(

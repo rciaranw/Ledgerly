@@ -96,7 +96,7 @@ fun AddRecurringTransactionScreen(
         "DAILY" to "Daily",
         "WEEKLY" to "Weekly",
         "MONTHLY" to "Monthly",
-        "YEARLY" to "YEARLY"
+        "YEARLY" to "Yearly"
     )
 
     Column(
