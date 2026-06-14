@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -19,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -28,10 +28,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ledgerly.ui.theme.LedgerlyExpenseRed
 import com.ledgerly.ui.theme.LedgerlyIncomeGreen
-import com.ledgerly.utils.CategoryBreakdownItem
-import com.ledgerly.utils.MonthlyTrendItem
 import com.ledgerly.utils.CurrencyFormatter
 import kotlin.math.max
+
+data class ChartDataItem(
+    val label: String,
+    val amount: Double
+)
 
 private val chartColours = listOf(
     Color(0xFF00B8A9),
@@ -55,15 +58,19 @@ fun IncomeExpenseChartCard(
             .coerceAtLeast(1.0)
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(
-            containerColor =
-                MaterialTheme.colorScheme.surfaceVariant
-        )
+        modifier =
+            Modifier.fillMaxWidth(),
+        shape =
+            RoundedCornerShape(18.dp),
+        colors =
+            CardDefaults.cardColors(
+                containerColor =
+                    MaterialTheme.colorScheme.surfaceVariant
+            )
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier =
+                Modifier.padding(16.dp),
             verticalArrangement =
                 Arrangement.spacedBy(14.dp)
         ) {
@@ -71,7 +78,8 @@ fun IncomeExpenseChartCard(
                 text = "Income vs Expenses",
                 style =
                     MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                fontWeight =
+                    FontWeight.Bold
             )
 
             ComparisonBar(
@@ -111,21 +119,25 @@ private fun ComparisonBar(
             Arrangement.spacedBy(6.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier =
+                Modifier.fillMaxWidth(),
             horizontalArrangement =
                 Arrangement.SpaceBetween
         ) {
             Text(
                 text = label,
-                fontWeight = FontWeight.SemiBold
+                fontWeight =
+                    FontWeight.SemiBold
             )
 
             Text(
-                text = CurrencyFormatter.format(
-                    amount = amount,
-                    currencyCode = currencyCode
-                ),
-                fontWeight = FontWeight.Bold
+                text =
+                    CurrencyFormatter.format(
+                        amount = amount,
+                        currencyCode = currencyCode
+                    ),
+                fontWeight =
+                    FontWeight.Bold
             )
         }
 
@@ -135,10 +147,11 @@ private fun ComparisonBar(
                 .height(14.dp)
         ) {
             drawRoundRect(
-                color = colour.copy(alpha = 0.18f),
+                color =
+                    colour.copy(alpha = 0.18f),
                 size = size,
                 cornerRadius =
-                    androidx.compose.ui.geometry.CornerRadius(
+                    CornerRadius(
                         x = size.height / 2f,
                         y = size.height / 2f
                     )
@@ -147,11 +160,13 @@ private fun ComparisonBar(
             drawRoundRect(
                 color = colour,
                 size = Size(
-                    width = size.width * progress,
-                    height = size.height
+                    width =
+                        size.width * progress,
+                    height =
+                        size.height
                 ),
                 cornerRadius =
-                    androidx.compose.ui.geometry.CornerRadius(
+                    CornerRadius(
                         x = size.height / 2f,
                         y = size.height / 2f
                     )
@@ -162,7 +177,7 @@ private fun ComparisonBar(
 
 @Composable
 fun SpendingPieChartCard(
-    data: List<CategoryBreakdownItem>,
+    data: List<ChartDataItem>,
     currencyCode: String
 ) {
     val total =
@@ -171,15 +186,19 @@ fun SpendingPieChartCard(
         }
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(
-            containerColor =
-                MaterialTheme.colorScheme.surfaceVariant
-        )
+        modifier =
+            Modifier.fillMaxWidth(),
+        shape =
+            RoundedCornerShape(18.dp),
+        colors =
+            CardDefaults.cardColors(
+                containerColor =
+                    MaterialTheme.colorScheme.surfaceVariant
+            )
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier =
+                Modifier.padding(16.dp),
             verticalArrangement =
                 Arrangement.spacedBy(14.dp)
         ) {
@@ -187,31 +206,40 @@ fun SpendingPieChartCard(
                 text = "Spending Split",
                 style =
                     MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                fontWeight =
+                    FontWeight.Bold
             )
 
             Text(
-                text = "How your expenses are divided by category.",
+                text =
+                    "How your expenses are divided by category.",
                 style =
                     MaterialTheme.typography.bodyMedium
             )
 
-            if (data.isEmpty() || total <= 0.0) {
+            if (
+                data.isEmpty() ||
+                total <= 0.0
+            ) {
                 Text(
-                    text = "No spending data available."
+                    text =
+                        "No spending data available."
                 )
             } else {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier =
+                        Modifier.fillMaxWidth(),
                     horizontalArrangement =
                         Arrangement.spacedBy(18.dp),
                     verticalAlignment =
                         Alignment.CenterVertically
                 ) {
                     Canvas(
-                        modifier = Modifier.size(140.dp)
+                        modifier =
+                            Modifier.size(140.dp)
                     ) {
-                        var startAngle = -90f
+                        var startAngle =
+                            -90f
 
                         data.forEachIndexed { index, item ->
                             val sweepAngle =
@@ -231,30 +259,34 @@ fun SpendingPieChartCard(
                                     startAngle,
                                 sweepAngle =
                                     sweepAngle,
-                                useCenter = false,
-                                style = Stroke(
-                                    width =
-                                        size.minDimension *
-                                            0.24f,
-                                    cap =
-                                        StrokeCap.Butt
-                                ),
-                                topLeft = Offset(
-                                    x =
-                                        size.width *
-                                            0.12f,
-                                    y =
-                                        size.height *
-                                            0.12f
-                                ),
-                                size = Size(
-                                    width =
-                                        size.width *
-                                            0.76f,
-                                    height =
-                                        size.height *
-                                            0.76f
-                                )
+                                useCenter =
+                                    false,
+                                style =
+                                    Stroke(
+                                        width =
+                                            size.minDimension *
+                                                0.24f,
+                                        cap =
+                                            StrokeCap.Butt
+                                    ),
+                                topLeft =
+                                    Offset(
+                                        x =
+                                            size.width *
+                                                0.12f,
+                                        y =
+                                            size.height *
+                                                0.12f
+                                    ),
+                                size =
+                                    Size(
+                                        width =
+                                            size.width *
+                                                0.76f,
+                                        height =
+                                            size.height *
+                                                0.76f
+                                    )
                             )
 
                             startAngle +=
@@ -270,15 +302,12 @@ fun SpendingPieChartCard(
                     ) {
                         data.forEachIndexed { index, item ->
                             val percentage =
-                                if (total <= 0.0) {
-                                    0
-                                } else {
-                                    (
-                                        item.amount /
-                                            total *
-                                            100.0
-                                        ).toInt()
-                                }
+                                (
+                                    item.amount /
+                                        total *
+                                        100.0
+                                    )
+                                    .toInt()
 
                             ChartLegendRow(
                                 colour =
@@ -301,7 +330,7 @@ fun SpendingPieChartCard(
 
 @Composable
 fun CategoryBreakdownChartCard(
-    data: List<CategoryBreakdownItem>,
+    data: List<ChartDataItem>,
     currencyCode: String
 ) {
     val maximumValue =
@@ -311,34 +340,42 @@ fun CategoryBreakdownChartCard(
             ?: 1.0
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(
-            containerColor =
-                MaterialTheme.colorScheme.surfaceVariant
-        )
+        modifier =
+            Modifier.fillMaxWidth(),
+        shape =
+            RoundedCornerShape(18.dp),
+        colors =
+            CardDefaults.cardColors(
+                containerColor =
+                    MaterialTheme.colorScheme.surfaceVariant
+            )
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier =
+                Modifier.padding(16.dp),
             verticalArrangement =
                 Arrangement.spacedBy(14.dp)
         ) {
             Text(
-                text = "Category Breakdown",
+                text =
+                    "Category Breakdown",
                 style =
                     MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                fontWeight =
+                    FontWeight.Bold
             )
 
             Text(
-                text = "Your highest spending categories for this period.",
+                text =
+                    "Your highest spending categories for this period.",
                 style =
                     MaterialTheme.typography.bodyMedium
             )
 
             if (data.isEmpty()) {
                 Text(
-                    text = "No category spending available."
+                    text =
+                        "No category spending available."
                 )
             } else {
                 data.forEachIndexed { index, item ->
@@ -362,7 +399,7 @@ fun CategoryBreakdownChartCard(
 
 @Composable
 private fun CategoryBreakdownRow(
-    item: CategoryBreakdownItem,
+    item: ChartDataItem,
     colour: Color,
     maximumValue: Double,
     currencyCode: String
@@ -377,7 +414,8 @@ private fun CategoryBreakdownRow(
             Arrangement.spacedBy(6.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier =
+                Modifier.fillMaxWidth(),
             horizontalArrangement =
                 Arrangement.SpaceBetween,
             verticalAlignment =
@@ -389,19 +427,13 @@ private fun CategoryBreakdownRow(
                 verticalAlignment =
                     Alignment.CenterVertically
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(10.dp)
-                        .padding(0.dp)
+                Canvas(
+                    modifier =
+                        Modifier.size(10.dp)
                 ) {
-                    Canvas(
-                        modifier =
-                            Modifier.matchParentSize()
-                    ) {
-                        drawCircle(
-                            color = colour
-                        )
-                    }
+                    drawCircle(
+                        color = colour
+                    )
                 }
 
                 Text(
@@ -414,7 +446,8 @@ private fun CategoryBreakdownRow(
             Text(
                 text =
                     CurrencyFormatter.format(
-                        amount = item.amount,
+                        amount =
+                            item.amount,
                         currencyCode =
                             currencyCode
                     ),
@@ -433,7 +466,7 @@ private fun CategoryBreakdownRow(
                     colour.copy(alpha = 0.18f),
                 size = size,
                 cornerRadius =
-                    androidx.compose.ui.geometry.CornerRadius(
+                    CornerRadius(
                         x = size.height / 2f,
                         y = size.height / 2f
                     )
@@ -448,7 +481,7 @@ private fun CategoryBreakdownRow(
                         size.height
                 ),
                 cornerRadius =
-                    androidx.compose.ui.geometry.CornerRadius(
+                    CornerRadius(
                         x = size.height / 2f,
                         y = size.height / 2f
                     )
@@ -459,7 +492,7 @@ private fun CategoryBreakdownRow(
 
 @Composable
 fun MonthlyTrendChartCard(
-    data: List<MonthlyTrendItem>,
+    data: List<ChartDataItem>,
     currencyCode: String
 ) {
     val maximumValue =
@@ -469,34 +502,42 @@ fun MonthlyTrendChartCard(
             ?: 1.0
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(
-            containerColor =
-                MaterialTheme.colorScheme.surfaceVariant
-        )
+        modifier =
+            Modifier.fillMaxWidth(),
+        shape =
+            RoundedCornerShape(18.dp),
+        colors =
+            CardDefaults.cardColors(
+                containerColor =
+                    MaterialTheme.colorScheme.surfaceVariant
+            )
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier =
+                Modifier.padding(16.dp),
             verticalArrangement =
                 Arrangement.spacedBy(14.dp)
         ) {
             Text(
-                text = "Monthly Spending Trend",
+                text =
+                    "Monthly Spending Trend",
                 style =
                     MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                fontWeight =
+                    FontWeight.Bold
             )
 
             Text(
-                text = "A comparison of your spending over the last six months.",
+                text =
+                    "A comparison of your spending over the last six months.",
                 style =
                     MaterialTheme.typography.bodyMedium
             )
 
             if (data.isEmpty()) {
                 Text(
-                    text = "No trend data available."
+                    text =
+                        "No trend data available."
                 )
             } else {
                 Row(
@@ -510,8 +551,10 @@ fun MonthlyTrendChartCard(
                 ) {
                     data.forEach { item ->
                         val ratio =
-                            (item.amount /
-                                maximumValue)
+                            (
+                                item.amount /
+                                    maximumValue
+                                )
                                 .toFloat()
                                 .coerceIn(
                                     0f,
@@ -567,7 +610,7 @@ fun MonthlyTrendChartCard(
                                             .primary,
                                     size = size,
                                     cornerRadius =
-                                        androidx.compose.ui.geometry.CornerRadius(
+                                        CornerRadius(
                                             x =
                                                 size.width /
                                                     4f,
@@ -584,7 +627,8 @@ fun MonthlyTrendChartCard(
                             )
 
                             Text(
-                                text = item.label,
+                                text =
+                                    item.label,
                                 style =
                                     MaterialTheme
                                         .typography

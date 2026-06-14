@@ -2,6 +2,7 @@ package com.ledgerly.utils
 
 import com.ledgerly.data.models.Transaction
 import com.ledgerly.ui.components.ChartDataItem
+import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
 
@@ -10,75 +11,54 @@ object AnalysisDataHelper {
     fun monthlyTrendData(
         transactions: List<Transaction>
     ): List<ChartDataItem> {
-
         return transactions
-            .filter { !it.isIncome }
-            .groupBy {
-                it.date.month
+            .filter { transaction ->
+                !transaction.isIncome
             }
-            .map { entry ->
-
-                ChartDataItem(
-                    label =
-                        entry.key.getDisplayName(
-                            TextStyle.SHORT,
-                            Locale.UK
-                        ),
-                    amount =
-                        entry.value.sumOf {
-                            it.amount
-                        }
+            .groupBy { transaction ->
+                YearMonth.from(
+                    transaction.date
                 )
             }
-            .sortedBy {
-                monthOrder(it.label)
+            .toSortedMap()
+            .map { entry ->
+                ChartDataItem(
+                    label =
+                        entry.key.month
+                            .getDisplayName(
+                                TextStyle.SHORT,
+                                Locale.UK
+                            ),
+                    amount =
+                        entry.value.sumOf { transaction ->
+                            transaction.amount
+                        }
+                )
             }
     }
 
     fun categoryBreakdownData(
         transactions: List<Transaction>
     ): List<ChartDataItem> {
-
         return transactions
-            .filter { !it.isIncome }
-            .groupBy {
-                it.category.name
+            .filter { transaction ->
+                !transaction.isIncome
+            }
+            .groupBy { transaction ->
+                transaction.category.name
             }
             .map { entry ->
-
                 ChartDataItem(
-                    label = entry.key,
+                    label =
+                        entry.key,
                     amount =
-                        entry.value.sumOf {
-                            it.amount
+                        entry.value.sumOf { transaction ->
+                            transaction.amount
                         }
                 )
             }
-            .sortedByDescending {
-                it.amount
+            .sortedByDescending { item ->
+                item.amount
             }
-    }
-
-    private fun monthOrder(
-        month: String
-    ): Int {
-
-        return when (month) {
-
-            "Jan" -> 1
-            "Feb" -> 2
-            "Mar" -> 3
-            "Apr" -> 4
-            "May" -> 5
-            "Jun" -> 6
-            "Jul" -> 7
-            "Aug" -> 8
-            "Sep" -> 9
-            "Oct" -> 10
-            "Nov" -> 11
-            "Dec" -> 12
-
-            else -> 99
-        }
     }
 }
