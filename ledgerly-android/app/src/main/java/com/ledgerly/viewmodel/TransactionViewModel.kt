@@ -18,27 +18,41 @@ class TransactionViewModel(
 
     private val repository: TransactionRepository
 
-    private val _transactions = mutableStateListOf<Transaction>()
+    private val _transactions =
+        mutableStateListOf<Transaction>()
 
     val transactions: List<Transaction>
         get() = _transactions
 
     init {
-        val database = DatabaseProvider.getDatabase(application)
+        val database =
+            DatabaseProvider.getDatabase(application)
 
-        repository = TransactionRepository(
-            transactionDao = database.transactionDao()
-        )
+        repository =
+            TransactionRepository(
+                transactionDao =
+                    database.transactionDao()
+            )
 
         viewModelScope.launch {
             repository.transactions.collect { entities ->
+                val updatedTransactions =
+                    entities
+                        .map { entity ->
+                            entity.toModel()
+                        }
+                        .sortedWith(
+                            compareByDescending<Transaction> {
+                                it.date
+                            }.thenByDescending {
+                                it.id
+                            }
+                        )
+
                 _transactions.clear()
                 _transactions.addAll(
-                    entities.map { entity ->
-                        entity.toModel()
-                    }
+                    updatedTransactions
                 )
-                sortTransactions()
             }
         }
     }
@@ -56,6 +70,10 @@ class TransactionViewModel(
     fun addTransactions(
         transactions: List<Transaction>
     ) {
+        if (transactions.isEmpty()) {
+            return
+        }
+
         viewModelScope.launch {
             transactions.forEach { transaction ->
                 repository.saveTransaction(
@@ -89,22 +107,21 @@ class TransactionViewModel(
         startDate: LocalDate,
         endDate: LocalDate
     ): List<Transaction> {
-        return _transactions
-            .filter {
-                !it.date.isBefore(startDate) &&
-                    !it.date.isAfter(endDate)
+        return transactions
+            .filter { transaction ->
+                !transaction.date.isBefore(
+                    startDate
+                ) &&
+                    !transaction.date.isAfter(
+                        endDate
+                    )
             }
-            .sortedByDescending {
-                it.date
-            }
-    }
-
-    private fun sortTransactions() {
-        val sorted = _transactions.sortedByDescending {
-            it.date
-        }
-
-        _transactions.clear()
-        _transactions.addAll(sorted)
+            .sortedWith(
+                compareByDescending<Transaction> {
+                    it.date
+                }.thenByDescending {
+                    it.id
+                }
+            )
     }
 }

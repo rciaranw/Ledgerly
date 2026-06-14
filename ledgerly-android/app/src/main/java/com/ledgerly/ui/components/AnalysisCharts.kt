@@ -1,403 +1,646 @@
-package com.ledgerly.ui.screens
+package com.ledgerly.ui.components
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.ledgerly.ui.components.CategoryBreakdownChartCard
-import com.ledgerly.ui.components.IncomeExpenseChartCard
-import com.ledgerly.ui.components.MonthlyTrendChartCard
-import com.ledgerly.ui.components.PeriodSelector
-import com.ledgerly.ui.components.SpendingPieChartCard
-import com.ledgerly.utils.AnalysisDataHelper
+import com.ledgerly.ui.theme.LedgerlyExpenseRed
+import com.ledgerly.ui.theme.LedgerlyIncomeGreen
+import com.ledgerly.utils.CategoryBreakdownItem
+import com.ledgerly.utils.MonthlyTrendItem
 import com.ledgerly.utils.CurrencyFormatter
-import com.ledgerly.utils.DatePeriodHelper
-import com.ledgerly.viewmodel.BudgetViewModel
-import com.ledgerly.viewmodel.PeriodViewModel
-import com.ledgerly.viewmodel.SettingsViewModel
-import com.ledgerly.viewmodel.TransactionViewModel
+import kotlin.math.max
+
+private val chartColours = listOf(
+    Color(0xFF00B8A9),
+    Color(0xFF7E57C2),
+    Color(0xFFFFA726),
+    Color(0xFF42A5F5),
+    Color(0xFFEC407A),
+    Color(0xFF66BB6A),
+    Color(0xFFAB47BC),
+    Color(0xFFFF7043)
+)
 
 @Composable
-fun AnalysisScreen(
-    transactionViewModel: TransactionViewModel,
-    budgetViewModel: BudgetViewModel,
-    settingsViewModel: SettingsViewModel,
-    periodViewModel: PeriodViewModel,
-    onAddBudget: () -> Unit,
-    onEditBudget: (String) -> Unit
+fun IncomeExpenseChartCard(
+    income: Double,
+    expenses: Double,
+    currencyCode: String
 ) {
-    val settings =
-        settingsViewModel.settings
+    val maximumValue =
+        max(income, expenses)
+            .coerceAtLeast(1.0)
 
-    val transactions =
-        transactionViewModel.transactions
-
-    val startDate =
-        DatePeriodHelper.startDate(
-            anchorDate =
-                periodViewModel.anchorDate,
-            periodType =
-                periodViewModel.periodType,
-            weekStartDay =
-                settings.weekStartDay,
-            monthStartDay =
-                settings.monthStartDay
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(
+            containerColor =
+                MaterialTheme.colorScheme.surfaceVariant
         )
-
-    val endDate =
-        DatePeriodHelper.endDate(
-            anchorDate =
-                periodViewModel.anchorDate,
-            periodType =
-                periodViewModel.periodType,
-            weekStartDay =
-                settings.weekStartDay,
-            monthStartDay =
-                settings.monthStartDay
-        )
-
-    val periodTransactions =
-        transactions.filter { transaction ->
-            !transaction.date.isBefore(startDate) &&
-                !transaction.date.isAfter(endDate)
-        }
-
-    val totalIncome =
-        periodTransactions
-            .filter { transaction ->
-                transaction.isIncome
-            }
-            .sumOf { transaction ->
-                transaction.amount
-            }
-
-    val totalExpenses =
-        periodTransactions
-            .filter { transaction ->
-                !transaction.isIncome
-            }
-            .sumOf { transaction ->
-                transaction.amount
-            }
-
-    val balance =
-        totalIncome - totalExpenses
-
-    val categoryBreakdown =
-        AnalysisDataHelper
-            .categoryBreakdownData(
-                periodTransactions
-            )
-            .take(5)
-
-    val monthlyTrendData =
-        AnalysisDataHelper
-            .monthlyTrendData(
-                transactions
-            )
-            .takeLast(6)
-
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement =
-            Arrangement.spacedBy(14.dp)
     ) {
-        item {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement =
+                Arrangement.spacedBy(14.dp)
+        ) {
             Text(
-                text = "Analysis",
+                text = "Income vs Expenses",
                 style =
-                    MaterialTheme
-                        .typography
-                        .headlineMedium,
-                fontWeight =
-                    FontWeight.Bold
+                    MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+
+            ComparisonBar(
+                label = "Income",
+                amount = income,
+                maximumValue = maximumValue,
+                colour = LedgerlyIncomeGreen,
+                currencyCode = currencyCode
+            )
+
+            ComparisonBar(
+                label = "Expenses",
+                amount = expenses,
+                maximumValue = maximumValue,
+                colour = LedgerlyExpenseRed,
+                currencyCode = currencyCode
+            )
+        }
+    }
+}
+
+@Composable
+private fun ComparisonBar(
+    label: String,
+    amount: Double,
+    maximumValue: Double,
+    colour: Color,
+    currencyCode: String
+) {
+    val progress =
+        (amount / maximumValue)
+            .toFloat()
+            .coerceIn(0f, 1f)
+
+    Column(
+        verticalArrangement =
+            Arrangement.spacedBy(6.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement =
+                Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = label,
+                fontWeight = FontWeight.SemiBold
+            )
+
+            Text(
+                text = CurrencyFormatter.format(
+                    amount = amount,
+                    currencyCode = currencyCode
+                ),
+                fontWeight = FontWeight.Bold
             )
         }
 
-        item {
-            PeriodSelector(
-                periodType =
-                    periodViewModel.periodType,
-                anchorDate =
-                    periodViewModel.anchorDate,
-                weekStartDay =
-                    settings.weekStartDay,
-                monthStartDay =
-                    settings.monthStartDay,
-                onPrevious = {
-                    periodViewModel
-                        .previousPeriod()
-                },
-                onNext = {
-                    periodViewModel
-                        .nextPeriod()
-                },
-                onToday = {
-                    periodViewModel
-                        .resetToToday()
-                },
-                onPeriodTypeChanged = { type ->
-                    periodViewModel
-                        .updatePeriodType(type)
-                }
-            )
-        }
-
-        item {
-            Card(
-                modifier =
-                    Modifier.fillMaxWidth(),
-                shape =
-                    RoundedCornerShape(20.dp),
-                colors =
-                    CardDefaults.cardColors(
-                        containerColor =
-                            MaterialTheme
-                                .colorScheme
-                                .primary
-                    ),
-                elevation =
-                    CardDefaults.cardElevation(
-                        defaultElevation = 4.dp
+        Canvas(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(14.dp)
+        ) {
+            drawRoundRect(
+                color = colour.copy(alpha = 0.18f),
+                size = size,
+                cornerRadius =
+                    androidx.compose.ui.geometry.CornerRadius(
+                        x = size.height / 2f,
+                        y = size.height / 2f
                     )
-            ) {
-                Column(
-                    modifier =
-                        Modifier.padding(20.dp),
-                    verticalArrangement =
-                        Arrangement.spacedBy(12.dp)
+            )
+
+            drawRoundRect(
+                color = colour,
+                size = Size(
+                    width = size.width * progress,
+                    height = size.height
+                ),
+                cornerRadius =
+                    androidx.compose.ui.geometry.CornerRadius(
+                        x = size.height / 2f,
+                        y = size.height / 2f
+                    )
+            )
+        }
+    }
+}
+
+@Composable
+fun SpendingPieChartCard(
+    data: List<CategoryBreakdownItem>,
+    currencyCode: String
+) {
+    val total =
+        data.sumOf { item ->
+            item.amount
+        }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(
+            containerColor =
+                MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement =
+                Arrangement.spacedBy(14.dp)
+        ) {
+            Text(
+                text = "Spending Split",
+                style =
+                    MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text = "How your expenses are divided by category.",
+                style =
+                    MaterialTheme.typography.bodyMedium
+            )
+
+            if (data.isEmpty() || total <= 0.0) {
+                Text(
+                    text = "No spending data available."
+                )
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement =
+                        Arrangement.spacedBy(18.dp),
+                    verticalAlignment =
+                        Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "Financial Overview",
-                        color =
-                            MaterialTheme
-                                .colorScheme
-                                .onPrimary,
-                        style =
-                            MaterialTheme
-                                .typography
-                                .titleMedium
-                    )
+                    Canvas(
+                        modifier = Modifier.size(140.dp)
+                    ) {
+                        var startAngle = -90f
 
-                    Text(
-                        text =
-                            CurrencyFormatter
-                                .format(
-                                    amount = balance,
-                                    currencyCode =
-                                        settings.currencyCode
+                        data.forEachIndexed { index, item ->
+                            val sweepAngle =
+                                (
+                                    item.amount /
+                                        total *
+                                        360.0
+                                    ).toFloat()
+
+                            drawArc(
+                                color =
+                                    chartColours[
+                                        index %
+                                            chartColours.size
+                                    ],
+                                startAngle =
+                                    startAngle,
+                                sweepAngle =
+                                    sweepAngle,
+                                useCenter = false,
+                                style = Stroke(
+                                    width =
+                                        size.minDimension *
+                                            0.24f,
+                                    cap =
+                                        StrokeCap.Butt
                                 ),
-                        color =
-                            MaterialTheme
-                                .colorScheme
-                                .onPrimary,
-                        style =
-                            MaterialTheme
-                                .typography
-                                .headlineLarge,
-                        fontWeight =
-                            FontWeight.Bold
-                    )
-
-                    Row(
-                        modifier =
-                            Modifier.fillMaxWidth(),
-                        horizontalArrangement =
-                            Arrangement.spacedBy(12.dp)
-                    ) {
-                        Column(
-                            modifier =
-                                Modifier.weight(1f)
-                        ) {
-                            Text(
-                                text = "Income",
-                                color =
-                                    MaterialTheme
-                                        .colorScheme
-                                        .onPrimary
+                                topLeft = Offset(
+                                    x =
+                                        size.width *
+                                            0.12f,
+                                    y =
+                                        size.height *
+                                            0.12f
+                                ),
+                                size = Size(
+                                    width =
+                                        size.width *
+                                            0.76f,
+                                    height =
+                                        size.height *
+                                            0.76f
+                                )
                             )
 
-                            Text(
-                                text =
-                                    CurrencyFormatter
-                                        .format(
-                                            amount =
-                                                totalIncome,
-                                            currencyCode =
-                                                settings.currencyCode
-                                        ),
-                                color =
-                                    MaterialTheme
-                                        .colorScheme
-                                        .onPrimary,
-                                fontWeight =
-                                    FontWeight.Bold
-                            )
+                            startAngle +=
+                                sweepAngle
                         }
+                    }
 
-                        Column(
-                            modifier =
-                                Modifier.weight(1f)
-                        ) {
-                            Text(
-                                text = "Expenses",
-                                color =
-                                    MaterialTheme
-                                        .colorScheme
-                                        .onPrimary
-                            )
+                    Column(
+                        modifier =
+                            Modifier.weight(1f),
+                        verticalArrangement =
+                            Arrangement.spacedBy(8.dp)
+                    ) {
+                        data.forEachIndexed { index, item ->
+                            val percentage =
+                                if (total <= 0.0) {
+                                    0
+                                } else {
+                                    (
+                                        item.amount /
+                                            total *
+                                            100.0
+                                        ).toInt()
+                                }
 
-                            Text(
-                                text =
-                                    CurrencyFormatter
-                                        .format(
-                                            amount =
-                                                totalExpenses,
-                                            currencyCode =
-                                                settings.currencyCode
-                                        ),
-                                color =
-                                    MaterialTheme
-                                        .colorScheme
-                                        .onPrimary,
-                                fontWeight =
-                                    FontWeight.Bold
+                            ChartLegendRow(
+                                colour =
+                                    chartColours[
+                                        index %
+                                            chartColours.size
+                                    ],
+                                label =
+                                    item.label,
+                                value =
+                                    "$percentage%"
                             )
                         }
                     }
                 }
             }
         }
+    }
+}
 
-        item {
-            IncomeExpenseChartCard(
-                income = totalIncome,
-                expenses = totalExpenses,
-                currencyCode =
-                    settings.currencyCode
-            )
-        }
+@Composable
+fun CategoryBreakdownChartCard(
+    data: List<CategoryBreakdownItem>,
+    currencyCode: String
+) {
+    val maximumValue =
+        data.maxOfOrNull { item ->
+            item.amount
+        }?.coerceAtLeast(1.0)
+            ?: 1.0
 
-        item {
-            SpendingPieChartCard(
-                data = categoryBreakdown,
-                currencyCode =
-                    settings.currencyCode
-            )
-        }
-
-        item {
-            CategoryBreakdownChartCard(
-                data = categoryBreakdown,
-                currencyCode =
-                    settings.currencyCode
-            )
-        }
-
-        item {
-            MonthlyTrendChartCard(
-                data = monthlyTrendData,
-                currencyCode =
-                    settings.currencyCode
-            )
-        }
-
-        item {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(
+            containerColor =
+                MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement =
+                Arrangement.spacedBy(14.dp)
+        ) {
             Text(
-                text = "Top Spending Categories",
+                text = "Category Breakdown",
                 style =
-                    MaterialTheme
-                        .typography
-                        .titleLarge,
+                    MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text = "Your highest spending categories for this period.",
+                style =
+                    MaterialTheme.typography.bodyMedium
+            )
+
+            if (data.isEmpty()) {
+                Text(
+                    text = "No category spending available."
+                )
+            } else {
+                data.forEachIndexed { index, item ->
+                    CategoryBreakdownRow(
+                        item = item,
+                        colour =
+                            chartColours[
+                                index %
+                                    chartColours.size
+                            ],
+                        maximumValue =
+                            maximumValue,
+                        currencyCode =
+                            currencyCode
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CategoryBreakdownRow(
+    item: CategoryBreakdownItem,
+    colour: Color,
+    maximumValue: Double,
+    currencyCode: String
+) {
+    val progress =
+        (item.amount / maximumValue)
+            .toFloat()
+            .coerceIn(0f, 1f)
+
+    Column(
+        verticalArrangement =
+            Arrangement.spacedBy(6.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement =
+                Arrangement.SpaceBetween,
+            verticalAlignment =
+                Alignment.CenterVertically
+        ) {
+            Row(
+                horizontalArrangement =
+                    Arrangement.spacedBy(8.dp),
+                verticalAlignment =
+                    Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(10.dp)
+                        .padding(0.dp)
+                ) {
+                    Canvas(
+                        modifier =
+                            Modifier.matchParentSize()
+                    ) {
+                        drawCircle(
+                            color = colour
+                        )
+                    }
+                }
+
+                Text(
+                    text = item.label,
+                    fontWeight =
+                        FontWeight.SemiBold
+                )
+            }
+
+            Text(
+                text =
+                    CurrencyFormatter.format(
+                        amount = item.amount,
+                        currencyCode =
+                            currencyCode
+                    ),
                 fontWeight =
                     FontWeight.Bold
             )
         }
 
-        if (categoryBreakdown.isEmpty()) {
-            item {
-                Card(
-                    modifier =
-                        Modifier.fillMaxWidth(),
-                    shape =
-                        RoundedCornerShape(18.dp),
-                    colors =
-                        CardDefaults.cardColors(
-                            containerColor =
-                                MaterialTheme
-                                    .colorScheme
-                                    .surfaceVariant
-                        )
-                ) {
-                    Text(
-                        text =
-                            "No spending data available.",
-                        modifier =
-                            Modifier.padding(16.dp)
+        Canvas(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(10.dp)
+        ) {
+            drawRoundRect(
+                color =
+                    colour.copy(alpha = 0.18f),
+                size = size,
+                cornerRadius =
+                    androidx.compose.ui.geometry.CornerRadius(
+                        x = size.height / 2f,
+                        y = size.height / 2f
                     )
-                }
-            }
-        } else {
-            items(
-                categoryBreakdown
-            ) { category ->
-                Card(
-                    modifier =
-                        Modifier.fillMaxWidth(),
-                    shape =
-                        RoundedCornerShape(18.dp),
-                    colors =
-                        CardDefaults.cardColors(
-                            containerColor =
-                                MaterialTheme
-                                    .colorScheme
-                                    .surfaceVariant
-                        )
-                ) {
-                    Row(
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                        horizontalArrangement =
-                            Arrangement
-                                .SpaceBetween
-                    ) {
-                        Text(
-                            text =
-                                category.label,
-                            fontWeight =
-                                FontWeight.Bold
-                        )
+            )
 
-                        Text(
-                            text =
-                                CurrencyFormatter
-                                    .format(
+            drawRoundRect(
+                color = colour,
+                size = Size(
+                    width =
+                        size.width * progress,
+                    height =
+                        size.height
+                ),
+                cornerRadius =
+                    androidx.compose.ui.geometry.CornerRadius(
+                        x = size.height / 2f,
+                        y = size.height / 2f
+                    )
+            )
+        }
+    }
+}
+
+@Composable
+fun MonthlyTrendChartCard(
+    data: List<MonthlyTrendItem>,
+    currencyCode: String
+) {
+    val maximumValue =
+        data.maxOfOrNull { item ->
+            item.amount
+        }?.coerceAtLeast(1.0)
+            ?: 1.0
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(
+            containerColor =
+                MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement =
+                Arrangement.spacedBy(14.dp)
+        ) {
+            Text(
+                text = "Monthly Spending Trend",
+                style =
+                    MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text = "A comparison of your spending over the last six months.",
+                style =
+                    MaterialTheme.typography.bodyMedium
+            )
+
+            if (data.isEmpty()) {
+                Text(
+                    text = "No trend data available."
+                )
+            } else {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(190.dp),
+                    horizontalArrangement =
+                        Arrangement.spacedBy(10.dp),
+                    verticalAlignment =
+                        Alignment.Bottom
+                ) {
+                    data.forEach { item ->
+                        val ratio =
+                            (item.amount /
+                                maximumValue)
+                                .toFloat()
+                                .coerceIn(
+                                    0f,
+                                    1f
+                                )
+
+                        Column(
+                            modifier =
+                                Modifier.weight(1f),
+                            horizontalAlignment =
+                                Alignment.CenterHorizontally,
+                            verticalArrangement =
+                                Arrangement.Bottom
+                        ) {
+                            Text(
+                                text =
+                                    CurrencyFormatter.format(
                                         amount =
-                                            category.amount,
+                                            item.amount,
                                         currencyCode =
-                                            settings.currencyCode
+                                            currencyCode
+                                    ),
+                                style =
+                                    MaterialTheme
+                                        .typography
+                                        .labelSmall,
+                                maxLines = 1
+                            )
+
+                            Spacer(
+                                modifier =
+                                    Modifier.height(6.dp)
+                            )
+
+                            Canvas(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(
+                                        (
+                                            120f *
+                                                ratio
+                                            )
+                                            .coerceAtLeast(
+                                                8f
+                                            )
+                                            .dp
                                     )
-                        )
+                            ) {
+                                drawRoundRect(
+                                    color =
+                                        MaterialTheme
+                                            .colorScheme
+                                            .primary,
+                                    size = size,
+                                    cornerRadius =
+                                        androidx.compose.ui.geometry.CornerRadius(
+                                            x =
+                                                size.width /
+                                                    4f,
+                                            y =
+                                                size.width /
+                                                    4f
+                                        )
+                                )
+                            }
+
+                            Spacer(
+                                modifier =
+                                    Modifier.height(6.dp)
+                            )
+
+                            Text(
+                                text = item.label,
+                                style =
+                                    MaterialTheme
+                                        .typography
+                                        .labelSmall,
+                                maxLines = 1
+                            )
+                        }
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ChartLegendRow(
+    colour: Color,
+    label: String,
+    value: String
+) {
+    Row(
+        modifier =
+            Modifier.fillMaxWidth(),
+        horizontalArrangement =
+            Arrangement.SpaceBetween,
+        verticalAlignment =
+            Alignment.CenterVertically
+    ) {
+        Row(
+            horizontalArrangement =
+                Arrangement.spacedBy(8.dp),
+            verticalAlignment =
+                Alignment.CenterVertically
+        ) {
+            Canvas(
+                modifier =
+                    Modifier.size(10.dp)
+            ) {
+                drawCircle(
+                    color = colour
+                )
+            }
+
+            Text(
+                text = label,
+                style =
+                    MaterialTheme.typography.bodySmall
+            )
+        }
+
+        Text(
+            text = value,
+            style =
+                MaterialTheme.typography.bodySmall,
+            fontWeight =
+                FontWeight.Bold
+        )
     }
 }

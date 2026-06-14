@@ -260,8 +260,7 @@ fun LedgerlyNavigation() {
         bottomBar = {
             NavigationBar {
                 val navBackStackEntry by
-                    navController
-                        .currentBackStackEntryAsState()
+                    navController.currentBackStackEntryAsState()
 
                 val currentDestination =
                     navBackStackEntry?.destination
@@ -345,9 +344,7 @@ fun LedgerlyNavigation() {
                         categoryViewModel,
                     onAddTransaction = {
                         navController.navigate(
-                            LedgerlyTab
-                                .AddTransaction
-                                .route
+                            LedgerlyTab.AddTransaction.route
                         )
                     },
                     onAddRecurringTransaction = {
@@ -357,8 +354,7 @@ fun LedgerlyNavigation() {
                                 .route
                         )
                     },
-                    onEditTransaction = {
-                        transactionId ->
+                    onEditTransaction = { transactionId ->
                         navController.navigate(
                             LedgerlyTab
                                 .EditTransaction
@@ -376,29 +372,10 @@ fun LedgerlyNavigation() {
                 AnalysisScreen(
                     transactionViewModel =
                         transactionViewModel,
-                    budgetViewModel =
-                        budgetViewModel,
                     settingsViewModel =
                         settingsViewModel,
                     periodViewModel =
-                        periodViewModel,
-                    onAddBudget = {
-                        navController.navigate(
-                            LedgerlyTab
-                                .AddBudget
-                                .route
-                        )
-                    },
-                    onEditBudget = {
-                        budgetId ->
-                        navController.navigate(
-                            LedgerlyTab
-                                .EditBudget
-                                .createRoute(
-                                    budgetId
-                                )
-                        )
-                    }
+                        periodViewModel
                 )
             }
 
@@ -416,13 +393,10 @@ fun LedgerlyNavigation() {
                         periodViewModel,
                     onAddBudget = {
                         navController.navigate(
-                            LedgerlyTab
-                                .AddBudget
-                                .route
+                            LedgerlyTab.AddBudget.route
                         )
                     },
-                    onEditBudget = {
-                        budgetId ->
+                    onEditBudget = { budgetId ->
                         navController.navigate(
                             LedgerlyTab
                                 .EditBudget
@@ -446,9 +420,7 @@ fun LedgerlyNavigation() {
                         categoryViewModel,
                     onAddCategory = {
                         navController.navigate(
-                            LedgerlyTab
-                                .AddCategory
-                                .route
+                            LedgerlyTab.AddCategory.route
                         )
                     },
                     onViewRecurringTransactions = {
@@ -460,9 +432,7 @@ fun LedgerlyNavigation() {
                     },
                     onExport = {
                         navController.navigate(
-                            LedgerlyTab
-                                .Export
-                                .route
+                            LedgerlyTab.Export.route
                         )
                     }
                 )
@@ -558,8 +528,7 @@ fun LedgerlyNavigation() {
                                 .route
                         )
                     },
-                    onEditRecurring = {
-                        recurringId ->
+                    onEditRecurring = { recurringId ->
                         navController.navigate(
                             LedgerlyTab
                                 .EditRecurringTransaction

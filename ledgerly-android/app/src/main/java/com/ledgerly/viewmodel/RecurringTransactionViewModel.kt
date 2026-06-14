@@ -31,10 +31,11 @@ class RecurringTransactionViewModel(
         val database =
             DatabaseProvider.getDatabase(application)
 
-        repository = RecurringTransactionRepository(
-            recurringTransactionDao =
-                database.recurringTransactionDao()
-        )
+        repository =
+            RecurringTransactionRepository(
+                recurringTransactionDao =
+                    database.recurringTransactionDao()
+            )
 
         viewModelScope.launch {
             repository.recurringTransactions.collect { entities ->
@@ -101,55 +102,85 @@ class RecurringTransactionViewModel(
     }
 
     fun generateDueTransactions(): List<Transaction> {
-        val today = LocalDate.now()
+        val today =
+            LocalDate.now()
 
         val generatedTransactions =
             mutableListOf<Transaction>()
 
         recurringTransactions.forEach { recurring ->
+            val endDate =
+                recurring.endDate
 
-            var generatedForCurrentRecurring = false
+            if (
+                endDate != null &&
+                endDate.isBefore(recurring.startDate)
+            ) {
+                return@forEach
+            }
 
             var nextDate =
-                recurring.lastGeneratedDate
-                    ?: recurring.startDate.minusDays(1)
-
-            while (true) {
-                nextDate = nextOccurrenceDate(
-                    currentDate = nextDate,
-                    interval = recurring.interval,
-                    unit = recurring.unit
-                )
-
-                if (nextDate.isAfter(today)) {
-                    break
+                if (recurring.lastGeneratedDate == null) {
+                    recurring.startDate
+                } else {
+                    nextOccurrenceDate(
+                        currentDate =
+                            recurring.lastGeneratedDate,
+                        interval =
+                            recurring.interval,
+                        unit =
+                            recurring.unit
+                    )
                 }
 
-                val endDate = recurring.endDate
+            var lastSuccessfullyGeneratedDate:
+                LocalDate? = null
 
-                if (endDate != null && nextDate.isAfter(endDate)) {
-                    break
-                }
-
+            while (
+                !nextDate.isAfter(today) &&
+                (
+                    endDate == null ||
+                        !nextDate.isAfter(endDate)
+                    )
+            ) {
                 generatedTransactions.add(
                     Transaction(
-                        id = UUID.randomUUID().toString(),
-                        title = recurring.title,
-                        notes = recurring.notes,
-                        amount = recurring.amount,
-                        date = nextDate,
-                        category = recurring.category,
-                        isIncome = recurring.isIncome
+                        id =
+                            UUID.randomUUID().toString(),
+                        title =
+                            recurring.title,
+                        notes =
+                            recurring.notes,
+                        amount =
+                            recurring.amount,
+                        date =
+                            nextDate,
+                        category =
+                            recurring.category,
+                        isIncome =
+                            recurring.isIncome
                     )
                 )
 
-                generatedForCurrentRecurring = true
+                lastSuccessfullyGeneratedDate =
+                    nextDate
+
+                nextDate =
+                    nextOccurrenceDate(
+                        currentDate =
+                            nextDate,
+                        interval =
+                            recurring.interval,
+                        unit =
+                            recurring.unit
+                    )
             }
 
-            if (generatedForCurrentRecurring) {
+            if (lastSuccessfullyGeneratedDate != null) {
                 val updatedRecurring =
                     recurring.copy(
-                        lastGeneratedDate = nextDate
+                        lastGeneratedDate =
+                            lastSuccessfullyGeneratedDate
                     )
 
                 saveRecurringTransaction(
@@ -166,26 +197,34 @@ class RecurringTransactionViewModel(
         interval: Int,
         unit: String
     ): LocalDate {
+        val safeInterval =
+            interval.coerceAtLeast(1)
+
         return when (unit) {
-            "DAILY" -> currentDate.plusDays(
-                interval.toLong()
-            )
+            "DAILY" ->
+                currentDate.plusDays(
+                    safeInterval.toLong()
+                )
 
-            "WEEKLY" -> currentDate.plusWeeks(
-                interval.toLong()
-            )
+            "WEEKLY" ->
+                currentDate.plusWeeks(
+                    safeInterval.toLong()
+                )
 
-            "MONTHLY" -> currentDate.plusMonths(
-                interval.toLong()
-            )
+            "MONTHLY" ->
+                currentDate.plusMonths(
+                    safeInterval.toLong()
+                )
 
-            "YEARLY" -> currentDate.plusYears(
-                interval.toLong()
-            )
+            "YEARLY" ->
+                currentDate.plusYears(
+                    safeInterval.toLong()
+                )
 
-            else -> currentDate.plusMonths(
-                interval.toLong()
-            )
+            else ->
+                currentDate.plusMonths(
+                    safeInterval.toLong()
+                )
         }
     }
 }
