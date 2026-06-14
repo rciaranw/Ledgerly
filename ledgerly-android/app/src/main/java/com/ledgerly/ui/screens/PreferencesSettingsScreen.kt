@@ -40,15 +40,35 @@ fun PreferencesSettingsScreen(
 
     val weekStartLabel =
         when (settings.weekStartDay) {
-            1 -> "Monday"
-            2 -> "Tuesday"
-            3 -> "Wednesday"
-            4 -> "Thursday"
-            5 -> "Friday"
-            6 -> "Saturday"
-            7 -> "Sunday"
-            else -> "Monday"
+            1 ->
+                "Monday"
+
+            2 ->
+                "Tuesday"
+
+            3 ->
+                "Wednesday"
+
+            4 ->
+                "Thursday"
+
+            5 ->
+                "Friday"
+
+            6 ->
+                "Saturday"
+
+            7 ->
+                "Sunday"
+
+            else ->
+                "Monday"
         }
+
+    val monthStartLabel =
+        ordinalDay(
+            settings.monthStartDay
+        )
 
     Column(
         modifier = Modifier
@@ -67,7 +87,8 @@ fun PreferencesSettingsScreen(
                 Alignment.CenterVertically
         ) {
             IconButton(
-                onClick = onBack
+                onClick =
+                    onBack
             ) {
                 Icon(
                     imageVector =
@@ -78,17 +99,22 @@ fun PreferencesSettingsScreen(
             }
 
             Text(
-                text = "Preferences",
+                text =
+                    "Preferences",
                 style =
-                    MaterialTheme.typography.headlineMedium,
+                    MaterialTheme
+                        .typography
+                        .headlineMedium,
                 fontWeight =
                     FontWeight.Bold
             )
         }
 
         SettingsOptionCard(
-            title = "Currency",
-            description = "Choose how money is displayed",
+            title =
+                "Currency",
+            description =
+                "Choose how money is displayed",
             currentValue =
                 settings.currencyCode,
             onClick =
@@ -96,16 +122,21 @@ fun PreferencesSettingsScreen(
         )
 
         SettingsOptionCard(
-            title = "Date Format",
-            description = "Choose how dates appear throughout Ledgerly",
-            currentValue = "DD/MM/YYYY",
+            title =
+                "Date Format",
+            description =
+                "Choose how dates appear throughout Ledgerly",
+            currentValue =
+                settings.dateFormat,
             onClick =
                 onOpenDateFormat
         )
 
         SettingsOptionCard(
-            title = "Week Start Day",
-            description = "Choose the first day of your week",
+            title =
+                "Week Start Day",
+            description =
+                "Choose the first day of your week",
             currentValue =
                 weekStartLabel,
             onClick =
@@ -113,10 +144,12 @@ fun PreferencesSettingsScreen(
         )
 
         SettingsOptionCard(
-            title = "Month Start Date",
-            description = "Choose the day your budgeting month begins",
+            title =
+                "Month Start Date",
+            description =
+                "Choose the day your budgeting month begins",
             currentValue =
-                settings.monthStartDay.toString(),
+                monthStartLabel,
             onClick =
                 onOpenMonthStartDate
         )
@@ -137,15 +170,20 @@ private fun SettingsOptionCard(
                 onClick()
             },
         shape =
-            RoundedCornerShape(18.dp),
+            RoundedCornerShape(
+                18.dp
+            ),
         colors =
             CardDefaults.cardColors(
                 containerColor =
-                    MaterialTheme.colorScheme.surfaceVariant
+                    MaterialTheme
+                        .colorScheme
+                        .surfaceVariant
             ),
         elevation =
             CardDefaults.cardElevation(
-                defaultElevation = 2.dp
+                defaultElevation =
+                    2.dp
             )
     ) {
         Row(
@@ -153,7 +191,9 @@ private fun SettingsOptionCard(
                 .fillMaxWidth()
                 .padding(16.dp),
             horizontalArrangement =
-                Arrangement.spacedBy(12.dp),
+                Arrangement.spacedBy(
+                    12.dp
+                ),
             verticalAlignment =
                 Alignment.CenterVertically
         ) {
@@ -161,30 +201,45 @@ private fun SettingsOptionCard(
                 modifier =
                     Modifier.weight(1f),
                 verticalArrangement =
-                    Arrangement.spacedBy(4.dp)
+                    Arrangement.spacedBy(
+                        4.dp
+                    )
             ) {
                 Text(
-                    text = title,
+                    text =
+                        title,
                     style =
-                        MaterialTheme.typography.titleMedium,
+                        MaterialTheme
+                            .typography
+                            .titleMedium,
                     fontWeight =
                         FontWeight.Bold
                 )
 
                 Text(
-                    text = description,
+                    text =
+                        description,
                     style =
-                        MaterialTheme.typography.bodySmall,
+                        MaterialTheme
+                            .typography
+                            .bodySmall,
                     color =
-                        MaterialTheme.colorScheme.onSurfaceVariant
+                        MaterialTheme
+                            .colorScheme
+                            .onSurfaceVariant
                 )
 
                 Text(
-                    text = currentValue,
+                    text =
+                        currentValue,
                     style =
-                        MaterialTheme.typography.bodyMedium,
+                        MaterialTheme
+                            .typography
+                            .bodyMedium,
                     color =
-                        MaterialTheme.colorScheme.primary,
+                        MaterialTheme
+                            .colorScheme
+                            .primary,
                     fontWeight =
                         FontWeight.SemiBold
                 )
@@ -198,4 +253,28 @@ private fun SettingsOptionCard(
             )
         }
     }
+}
+
+private fun ordinalDay(
+    day: Int
+): String {
+    val suffix =
+        when {
+            day in 11..13 ->
+                "th"
+
+            day % 10 == 1 ->
+                "st"
+
+            day % 10 == 2 ->
+                "nd"
+
+            day % 10 == 3 ->
+                "rd"
+
+            else ->
+                "th"
+        }
+
+    return "$day$suffix"
 }

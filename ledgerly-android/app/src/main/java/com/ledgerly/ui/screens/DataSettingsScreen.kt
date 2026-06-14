@@ -77,7 +77,7 @@ fun DataSettingsScreen(
         DataOptionCard(
             title = "Custom Categories",
             description =
-                "Create, review and remove your own transaction categories",
+                "Create, review and remove custom transaction categories",
             onClick =
                 onOpenCustomCategories
         )
@@ -93,71 +93,38 @@ fun DataSettingsScreen(
         DataOptionCard(
             title = "Export Data",
             description =
-                "Export your transaction data as a CSV file",
+                "Export transaction data as a CSV file",
             onClick =
                 onOpenExportData
         )
 
-        Card(
-            modifier =
-                Modifier.fillMaxWidth(),
-            shape =
-                RoundedCornerShape(18.dp),
-            colors =
-                CardDefaults.cardColors(
-                    containerColor =
-                        MaterialTheme.colorScheme.surfaceVariant
-                ),
-            elevation =
-                CardDefaults.cardElevation(
-                    defaultElevation = 2.dp
-                )
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement =
-                    Arrangement.spacedBy(12.dp),
-                verticalAlignment =
-                    Alignment.CenterVertically
-            ) {
-                Column(
-                    modifier =
-                        Modifier.weight(1f),
-                    verticalArrangement =
-                        Arrangement.spacedBy(4.dp)
-                ) {
-                    Text(
-                        text = "Carry Over Budget",
-                        style =
-                            MaterialTheme.typography.titleMedium,
-                        fontWeight =
-                            FontWeight.Bold
+        DataToggleCard(
+            title = "Carry Over Budget",
+            description =
+                "Carry remaining budget into the next period",
+            checked =
+                settings.carryOverEnabled,
+            onCheckedChange = { enabled ->
+                settingsViewModel
+                    .setCarryOverEnabled(
+                        enabled
                     )
-
-                    Text(
-                        text =
-                            "Carry remaining budget into the next period",
-                        style =
-                            MaterialTheme.typography.bodySmall,
-                        color =
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                Switch(
-                    checked =
-                        settings.carryOverEnabled,
-                    onCheckedChange = { enabled ->
-                        settingsViewModel
-                            .setCarryOverEnabled(
-                                enabled
-                            )
-                    }
-                )
             }
-        }
+        )
+
+        DataToggleCard(
+            title = "Biometric Lock",
+            description =
+                "Require fingerprint, face recognition or device authentication",
+            checked =
+                settings.biometricLockEnabled,
+            onCheckedChange = { enabled ->
+                settingsViewModel
+                    .setBiometricLockEnabled(
+                        enabled
+                    )
+            }
+        )
     }
 }
 
@@ -222,6 +189,70 @@ private fun DataOptionCard(
                     Icons.Filled.ChevronRight,
                 contentDescription =
                     "Open $title"
+            )
+        }
+    }
+}
+
+@Composable
+private fun DataToggleCard(
+    title: String,
+    description: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Card(
+        modifier =
+            Modifier.fillMaxWidth(),
+        shape =
+            RoundedCornerShape(18.dp),
+        colors =
+            CardDefaults.cardColors(
+                containerColor =
+                    MaterialTheme.colorScheme.surfaceVariant
+            ),
+        elevation =
+            CardDefaults.cardElevation(
+                defaultElevation = 2.dp
+            )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement =
+                Arrangement.spacedBy(12.dp),
+            verticalAlignment =
+                Alignment.CenterVertically
+        ) {
+            Column(
+                modifier =
+                    Modifier.weight(1f),
+                verticalArrangement =
+                    Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = title,
+                    style =
+                        MaterialTheme.typography.titleMedium,
+                    fontWeight =
+                        FontWeight.Bold
+                )
+
+                Text(
+                    text = description,
+                    style =
+                        MaterialTheme.typography.bodySmall,
+                    color =
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            Switch(
+                checked =
+                    checked,
+                onCheckedChange =
+                    onCheckedChange
             )
         }
     }

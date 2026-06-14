@@ -36,15 +36,28 @@ import com.ledgerly.ui.screens.AddCategoryScreen
 import com.ledgerly.ui.screens.AddRecurringTransactionScreen
 import com.ledgerly.ui.screens.AddTransactionScreen
 import com.ledgerly.ui.screens.AnalysisScreen
+import com.ledgerly.ui.screens.AppInfoSettingsScreen
 import com.ledgerly.ui.screens.BudgetScreen
+import com.ledgerly.ui.screens.CurrencySettingsScreen
+import com.ledgerly.ui.screens.CustomCategoriesSettingsScreen
+import com.ledgerly.ui.screens.DataSettingsScreen
+import com.ledgerly.ui.screens.DateFormatSettingsScreen
+import com.ledgerly.ui.screens.DisplaySettingsScreen
 import com.ledgerly.ui.screens.EditBudgetScreen
 import com.ledgerly.ui.screens.EditRecurringTransactionScreen
 import com.ledgerly.ui.screens.EditTransactionScreen
 import com.ledgerly.ui.screens.ExportScreen
 import com.ledgerly.ui.screens.HomeScreen
+import com.ledgerly.ui.screens.LanguageSettingsScreen
+import com.ledgerly.ui.screens.MonthStartDateSettingsScreen
+import com.ledgerly.ui.screens.PreferencesSettingsScreen
 import com.ledgerly.ui.screens.RecurringTransactionsScreen
 import com.ledgerly.ui.screens.SettingsScreen
+import com.ledgerly.ui.screens.SupportSettingsScreen
+import com.ledgerly.ui.screens.TextSizeSettingsScreen
+import com.ledgerly.ui.screens.ThemeSettingsScreen
 import com.ledgerly.ui.screens.TransactionsScreen
+import com.ledgerly.ui.screens.WeekStartDaySettingsScreen
 import com.ledgerly.viewmodel.BudgetViewModel
 import com.ledgerly.viewmodel.CategoryViewModel
 import com.ledgerly.viewmodel.PeriodViewModel
@@ -90,6 +103,84 @@ sealed class LedgerlyTab(
             route = "settings",
             label = "Settings",
             icon = Icons.Filled.Settings
+        )
+
+    data object PreferencesSettings :
+        LedgerlyTab(
+            route = "settings/preferences",
+            label = "Preferences"
+        )
+
+    data object DisplaySettings :
+        LedgerlyTab(
+            route = "settings/display",
+            label = "Display"
+        )
+
+    data object DataSettings :
+        LedgerlyTab(
+            route = "settings/data",
+            label = "Data"
+        )
+
+    data object AppInfoSettings :
+        LedgerlyTab(
+            route = "settings/app_info",
+            label = "App Info"
+        )
+
+    data object CurrencySettings :
+        LedgerlyTab(
+            route = "settings/preferences/currency",
+            label = "Currency"
+        )
+
+    data object DateFormatSettings :
+        LedgerlyTab(
+            route = "settings/preferences/date_format",
+            label = "Date Format"
+        )
+
+    data object WeekStartSettings :
+        LedgerlyTab(
+            route = "settings/preferences/week_start",
+            label = "Week Start"
+        )
+
+    data object MonthStartSettings :
+        LedgerlyTab(
+            route = "settings/preferences/month_start",
+            label = "Month Start"
+        )
+
+    data object ThemeSettings :
+        LedgerlyTab(
+            route = "settings/display/theme",
+            label = "Theme"
+        )
+
+    data object LanguageSettings :
+        LedgerlyTab(
+            route = "settings/display/language",
+            label = "Language"
+        )
+
+    data object TextSizeSettings :
+        LedgerlyTab(
+            route = "settings/display/text_size",
+            label = "Text Size"
+        )
+
+    data object CustomCategoriesSettings :
+        LedgerlyTab(
+            route = "settings/data/custom_categories",
+            label = "Custom Categories"
+        )
+
+    data object SupportSettings :
+        LedgerlyTab(
+            route = "settings/app_info/support",
+            label = "Support"
         )
 
     data object AddTransaction :
@@ -166,7 +257,9 @@ sealed class LedgerlyTab(
 }
 
 @Composable
-fun LedgerlyNavigation() {
+fun LedgerlyNavigation(
+    settingsViewModel: SettingsViewModel
+) {
     val navController =
         rememberNavController()
 
@@ -177,7 +270,8 @@ fun LedgerlyNavigation() {
         TransactionViewModel =
         viewModel(
             factory =
-                ViewModelProvider.AndroidViewModelFactory
+                ViewModelProvider
+                    .AndroidViewModelFactory
                     .getInstance(application)
         )
 
@@ -185,15 +279,8 @@ fun LedgerlyNavigation() {
         BudgetViewModel =
         viewModel(
             factory =
-                ViewModelProvider.AndroidViewModelFactory
-                    .getInstance(application)
-        )
-
-    val settingsViewModel:
-        SettingsViewModel =
-        viewModel(
-            factory =
-                ViewModelProvider.AndroidViewModelFactory
+                ViewModelProvider
+                    .AndroidViewModelFactory
                     .getInstance(application)
         )
 
@@ -201,7 +288,8 @@ fun LedgerlyNavigation() {
         CategoryViewModel =
         viewModel(
             factory =
-                ViewModelProvider.AndroidViewModelFactory
+                ViewModelProvider
+                    .AndroidViewModelFactory
                     .getInstance(application)
         )
 
@@ -209,7 +297,8 @@ fun LedgerlyNavigation() {
         RecurringTransactionViewModel =
         viewModel(
             factory =
-                ViewModelProvider.AndroidViewModelFactory
+                ViewModelProvider
+                    .AndroidViewModelFactory
                     .getInstance(application)
         )
 
@@ -235,32 +324,29 @@ fun LedgerlyNavigation() {
                 transactionViewModel.addTransactions(
                     generatedTransactions
                 )
-
-                budgetViewModel
-                    .refreshCurrentMonthBudgets(
-                        transactionViewModel.transactions
-                    )
             }
 
             recurringProcessed = true
         }
     }
 
-    val tabs = remember {
-        listOf(
-            LedgerlyTab.Home,
-            LedgerlyTab.Transactions,
-            LedgerlyTab.Analysis,
-            LedgerlyTab.Budget,
-            LedgerlyTab.Settings
-        )
-    }
+    val tabs =
+        remember {
+            listOf(
+                LedgerlyTab.Home,
+                LedgerlyTab.Transactions,
+                LedgerlyTab.Analysis,
+                LedgerlyTab.Budget,
+                LedgerlyTab.Settings
+            )
+        }
 
     Scaffold(
         bottomBar = {
             NavigationBar {
                 val navBackStackEntry by
-                    navController.currentBackStackEntryAsState()
+                    navController
+                        .currentBackStackEntryAsState()
 
                 val currentDestination =
                     navBackStackEntry?.destination
@@ -271,7 +357,8 @@ fun LedgerlyNavigation() {
                             currentDestination
                                 ?.hierarchy
                                 ?.any {
-                                    it.route == tab.route
+                                    it.route ==
+                                        tab.route
                                 } == true,
                         onClick = {
                             navController.navigate(
@@ -344,7 +431,9 @@ fun LedgerlyNavigation() {
                         categoryViewModel,
                     onAddTransaction = {
                         navController.navigate(
-                            LedgerlyTab.AddTransaction.route
+                            LedgerlyTab
+                                .AddTransaction
+                                .route
                         )
                     },
                     onAddRecurringTransaction = {
@@ -393,7 +482,9 @@ fun LedgerlyNavigation() {
                         periodViewModel,
                     onAddBudget = {
                         navController.navigate(
-                            LedgerlyTab.AddBudget.route
+                            LedgerlyTab
+                                .AddBudget
+                                .route
                         )
                     },
                     onEditBudget = { budgetId ->
@@ -418,22 +509,267 @@ fun LedgerlyNavigation() {
                         settingsViewModel,
                     categoryViewModel =
                         categoryViewModel,
-                    onAddCategory = {
+                    onOpenPreferences = {
                         navController.navigate(
-                            LedgerlyTab.AddCategory.route
+                            LedgerlyTab
+                                .PreferencesSettings
+                                .route
                         )
                     },
-                    onViewRecurringTransactions = {
+                    onOpenDisplay = {
+                        navController.navigate(
+                            LedgerlyTab
+                                .DisplaySettings
+                                .route
+                        )
+                    },
+                    onOpenData = {
+                        navController.navigate(
+                            LedgerlyTab
+                                .DataSettings
+                                .route
+                        )
+                    },
+                    onOpenAppInfo = {
+                        navController.navigate(
+                            LedgerlyTab
+                                .AppInfoSettings
+                                .route
+                        )
+                    }
+                )
+            }
+
+            composable(
+                LedgerlyTab.PreferencesSettings.route
+            ) {
+                PreferencesSettingsScreen(
+                    settingsViewModel =
+                        settingsViewModel,
+                    onBack = {
+                        navController.popBackStack()
+                    },
+                    onOpenCurrency = {
+                        navController.navigate(
+                            LedgerlyTab
+                                .CurrencySettings
+                                .route
+                        )
+                    },
+                    onOpenDateFormat = {
+                        navController.navigate(
+                            LedgerlyTab
+                                .DateFormatSettings
+                                .route
+                        )
+                    },
+                    onOpenWeekStartDay = {
+                        navController.navigate(
+                            LedgerlyTab
+                                .WeekStartSettings
+                                .route
+                        )
+                    },
+                    onOpenMonthStartDate = {
+                        navController.navigate(
+                            LedgerlyTab
+                                .MonthStartSettings
+                                .route
+                        )
+                    }
+                )
+            }
+
+            composable(
+                LedgerlyTab.DisplaySettings.route
+            ) {
+                DisplaySettingsScreen(
+                    settingsViewModel =
+                        settingsViewModel,
+                    onBack = {
+                        navController.popBackStack()
+                    },
+                    onOpenTheme = {
+                        navController.navigate(
+                            LedgerlyTab
+                                .ThemeSettings
+                                .route
+                        )
+                    },
+                    onOpenLanguage = {
+                        navController.navigate(
+                            LedgerlyTab
+                                .LanguageSettings
+                                .route
+                        )
+                    },
+                    onOpenTextSize = {
+                        navController.navigate(
+                            LedgerlyTab
+                                .TextSizeSettings
+                                .route
+                        )
+                    }
+                )
+            }
+
+            composable(
+                LedgerlyTab.DataSettings.route
+            ) {
+                DataSettingsScreen(
+                    settingsViewModel =
+                        settingsViewModel,
+                    onBack = {
+                        navController.popBackStack()
+                    },
+                    onOpenCustomCategories = {
+                        navController.navigate(
+                            LedgerlyTab
+                                .CustomCategoriesSettings
+                                .route
+                        )
+                    },
+                    onOpenRecurringTransactions = {
                         navController.navigate(
                             LedgerlyTab
                                 .RecurringTransactions
                                 .route
                         )
                     },
-                    onExport = {
+                    onOpenExportData = {
                         navController.navigate(
                             LedgerlyTab.Export.route
                         )
+                    }
+                )
+            }
+
+            composable(
+                LedgerlyTab.AppInfoSettings.route
+            ) {
+                AppInfoSettingsScreen(
+                    onBack = {
+                        navController.popBackStack()
+                    },
+                    onOpenSupport = {
+                        navController.navigate(
+                            LedgerlyTab
+                                .SupportSettings
+                                .route
+                        )
+                    }
+                )
+            }
+
+            composable(
+                LedgerlyTab.CurrencySettings.route
+            ) {
+                CurrencySettingsScreen(
+                    settingsViewModel =
+                        settingsViewModel,
+                    onBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable(
+                LedgerlyTab.DateFormatSettings.route
+            ) {
+                DateFormatSettingsScreen(
+                    settingsViewModel =
+                        settingsViewModel,
+                    onBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable(
+                LedgerlyTab.WeekStartSettings.route
+            ) {
+                WeekStartDaySettingsScreen(
+                    settingsViewModel =
+                        settingsViewModel,
+                    onBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable(
+                LedgerlyTab.MonthStartSettings.route
+            ) {
+                MonthStartDateSettingsScreen(
+                    settingsViewModel =
+                        settingsViewModel,
+                    onBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable(
+                LedgerlyTab.ThemeSettings.route
+            ) {
+                ThemeSettingsScreen(
+                    settingsViewModel =
+                        settingsViewModel,
+                    onBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable(
+                LedgerlyTab.LanguageSettings.route
+            ) {
+                LanguageSettingsScreen(
+                    settingsViewModel =
+                        settingsViewModel,
+                    onBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable(
+                LedgerlyTab.TextSizeSettings.route
+            ) {
+                TextSizeSettingsScreen(
+                    settingsViewModel =
+                        settingsViewModel,
+                    onBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable(
+                LedgerlyTab.CustomCategoriesSettings.route
+            ) {
+                CustomCategoriesSettingsScreen(
+                    categoryViewModel =
+                        categoryViewModel,
+                    onBack = {
+                        navController.popBackStack()
+                    },
+                    onAddCategory = {
+                        navController.navigate(
+                            LedgerlyTab
+                                .AddCategory
+                                .route
+                        )
+                    }
+                )
+            }
+
+            composable(
+                LedgerlyTab.SupportSettings.route
+            ) {
+                SupportSettingsScreen(
+                    onBack = {
+                        navController.popBackStack()
                     }
                 )
             }

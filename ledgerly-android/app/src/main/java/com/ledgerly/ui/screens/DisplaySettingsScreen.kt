@@ -39,10 +39,16 @@ fun DisplaySettingsScreen(
 
     val themeLabel =
         when (settings.theme) {
-            "Turquoise" -> "Default"
-            "White" -> "Light"
-            "Light" -> "Light"
-            else -> settings.theme
+            "Turquoise",
+            "Default" ->
+                "Default"
+
+            "White",
+            "Light" ->
+                "Light"
+
+            else ->
+                settings.theme
         }
 
     Column(
@@ -62,7 +68,8 @@ fun DisplaySettingsScreen(
                 Alignment.CenterVertically
         ) {
             IconButton(
-                onClick = onBack
+                onClick =
+                    onBack
             ) {
                 Icon(
                     imageVector =
@@ -73,16 +80,20 @@ fun DisplaySettingsScreen(
             }
 
             Text(
-                text = "Display",
+                text =
+                    "Display",
                 style =
-                    MaterialTheme.typography.headlineMedium,
+                    MaterialTheme
+                        .typography
+                        .headlineMedium,
                 fontWeight =
                     FontWeight.Bold
             )
         }
 
         DisplayOptionCard(
-            title = "Theme",
+            title =
+                "Theme",
             description =
                 "Choose Ledgerly's colour theme",
             currentValue =
@@ -92,21 +103,23 @@ fun DisplaySettingsScreen(
         )
 
         DisplayOptionCard(
-            title = "Language",
+            title =
+                "Language",
             description =
                 "Choose the language used throughout the app",
             currentValue =
-                "English",
+                settings.language,
             onClick =
                 onOpenLanguage
         )
 
         DisplayOptionCard(
-            title = "Text Size",
+            title =
+                "Text Size",
             description =
                 "Adjust the size of text throughout Ledgerly",
             currentValue =
-                "Standard",
+                settings.textSize,
             onClick =
                 onOpenTextSize
         )
@@ -127,15 +140,20 @@ private fun DisplayOptionCard(
                 onClick()
             },
         shape =
-            RoundedCornerShape(18.dp),
+            RoundedCornerShape(
+                18.dp
+            ),
         colors =
             CardDefaults.cardColors(
                 containerColor =
-                    MaterialTheme.colorScheme.surfaceVariant
+                    MaterialTheme
+                        .colorScheme
+                        .surfaceVariant
             ),
         elevation =
             CardDefaults.cardElevation(
-                defaultElevation = 2.dp
+                defaultElevation =
+                    2.dp
             )
     ) {
         Row(
@@ -143,7 +161,9 @@ private fun DisplayOptionCard(
                 .fillMaxWidth()
                 .padding(16.dp),
             horizontalArrangement =
-                Arrangement.spacedBy(12.dp),
+                Arrangement.spacedBy(
+                    12.dp
+                ),
             verticalAlignment =
                 Alignment.CenterVertically
         ) {
@@ -151,30 +171,45 @@ private fun DisplayOptionCard(
                 modifier =
                     Modifier.weight(1f),
                 verticalArrangement =
-                    Arrangement.spacedBy(4.dp)
+                    Arrangement.spacedBy(
+                        4.dp
+                    )
             ) {
                 Text(
-                    text = title,
+                    text =
+                        title,
                     style =
-                        MaterialTheme.typography.titleMedium,
+                        MaterialTheme
+                            .typography
+                            .titleMedium,
                     fontWeight =
                         FontWeight.Bold
                 )
 
                 Text(
-                    text = description,
+                    text =
+                        description,
                     style =
-                        MaterialTheme.typography.bodySmall,
+                        MaterialTheme
+                            .typography
+                            .bodySmall,
                     color =
-                        MaterialTheme.colorScheme.onSurfaceVariant
+                        MaterialTheme
+                            .colorScheme
+                            .onSurfaceVariant
                 )
 
                 Text(
-                    text = currentValue,
+                    text =
+                        currentValue,
                     style =
-                        MaterialTheme.typography.bodyMedium,
+                        MaterialTheme
+                            .typography
+                            .bodyMedium,
                     color =
-                        MaterialTheme.colorScheme.primary,
+                        MaterialTheme
+                            .colorScheme
+                            .primary,
                     fontWeight =
                         FontWeight.SemiBold
                 )
