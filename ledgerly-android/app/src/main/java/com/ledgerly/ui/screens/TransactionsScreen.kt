@@ -34,6 +34,7 @@ import com.ledgerly.ui.components.EmptyStateCard
 import com.ledgerly.ui.components.LedgerlyPrimaryButton
 import com.ledgerly.ui.components.LedgerlySecondaryButton
 import com.ledgerly.ui.components.TransactionCard
+import com.ledgerly.utils.DateHelper
 import com.ledgerly.viewmodel.CategoryViewModel
 import com.ledgerly.viewmodel.SettingsViewModel
 import com.ledgerly.viewmodel.TransactionViewModel
@@ -61,7 +62,9 @@ fun TransactionsScreen(
     }
 
     var selectedFilter by remember {
-        mutableStateOf(TransactionFilter.All)
+        mutableStateOf(
+            TransactionFilter.All
+        )
     }
 
     val filteredTransactions =
@@ -85,11 +88,26 @@ fun TransactionsScreen(
                 if (query.isBlank()) {
                     true
                 } else {
-                    val amountText =
-                        transaction.amount.toString()
+                    val rawAmount =
+                        transaction.amount
+                            .toString()
 
-                    val formattedDate =
-                        transaction.date.toString()
+                    val formattedAmount =
+                        "%.2f".format(
+                            transaction.amount
+                        )
+
+                    val isoDate =
+                        transaction.date
+                            .toString()
+
+                    val preferredDate =
+                        DateHelper.formatDate(
+                            date =
+                                transaction.date,
+                            format =
+                                settings.dateFormat
+                        )
 
                     transaction.title.contains(
                         query,
@@ -103,19 +121,33 @@ fun TransactionsScreen(
                             query,
                             ignoreCase = true
                         ) ||
-                        amountText.contains(
+                        rawAmount.contains(
                             query,
                             ignoreCase = true
                         ) ||
-                        formattedDate.contains(
+                        formattedAmount.contains(
+                            query,
+                            ignoreCase = true
+                        ) ||
+                        isoDate.contains(
+                            query,
+                            ignoreCase = true
+                        ) ||
+                        preferredDate.contains(
                             query,
                             ignoreCase = true
                         )
                 }
             }
-            .sortedByDescending {
-                it.date
-            }
+            .sortedWith(
+                compareByDescending<
+                    com.ledgerly.data.models.Transaction
+                > {
+                    it.date
+                }.thenByDescending {
+                    it.id
+                }
+            )
 
     Box(
         modifier = Modifier
@@ -145,22 +177,27 @@ fun TransactionsScreen(
             ) {
                 LedgerlyPrimaryButton(
                     text = "Add",
-                    onClick = onAddTransaction
+                    onClick =
+                        onAddTransaction
                 )
 
                 Spacer(
                     modifier =
-                        Modifier.padding(horizontal = 5.dp)
+                        Modifier.padding(
+                            horizontal = 5.dp
+                        )
                 )
 
                 LedgerlySecondaryButton(
                     text = "Recurring",
-                    onClick = onAddRecurringTransaction
+                    onClick =
+                        onAddRecurringTransaction
                 )
             }
 
             OutlinedTextField(
-                value = searchText,
+                value =
+                    searchText,
                 onValueChange = {
                     searchText =
                         it.replace(
@@ -168,13 +205,18 @@ fun TransactionsScreen(
                             ""
                         )
                 },
-                singleLine = true,
+                singleLine =
+                    true,
                 label = {
-                    Text("Search transactions")
+                    Text(
+                        text =
+                            "Search transactions"
+                    )
                 },
                 keyboardOptions =
                     KeyboardOptions(
-                        imeAction = ImeAction.Search
+                        imeAction =
+                            ImeAction.Search
                     ),
                 keyboardActions =
                     KeyboardActions(
@@ -188,47 +230,70 @@ fun TransactionsScreen(
             )
 
             TransactionFilterSelector(
-                selectedFilter = selectedFilter,
+                selectedFilter =
+                    selectedFilter,
                 onFilterSelected = { filter ->
-                    selectedFilter = filter
+                    selectedFilter =
+                        filter
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 12.dp)
             )
 
-            if (filteredTransactions.isEmpty()) {
+            if (
+                filteredTransactions.isEmpty()
+            ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 24.dp)
                 ) {
-                    if (transactions.isEmpty()) {
+                    if (
+                        transactions.isEmpty()
+                    ) {
                         EmptyStateCard(
                             emoji = "💳",
-                            title = "No transactions yet",
-                            message = "Add your first transaction to start tracking your money."
+                            title =
+                                "No transactions yet",
+                            message =
+                                "Add your first transaction to start tracking your money."
                         )
                     } else {
                         EmptyStateCard(
                             emoji = "🔍",
-                            title = "No matching transactions",
-                            message = "Try searching by title, amount, notes, date or category."
+                            title =
+                                "No matching transactions",
+                            message =
+                                "Try searching by title, amount, notes, date or category."
                         )
                     }
                 }
             } else {
                 LazyColumn(
                     verticalArrangement =
-                        Arrangement.spacedBy(10.dp),
+                        Arrangement.spacedBy(
+                            10.dp
+                        ),
                     modifier =
-                        Modifier.padding(top = 16.dp)
+                        Modifier.padding(
+                            top = 16.dp
+                        )
                 ) {
-                    items(filteredTransactions) { transaction ->
+                    items(
+                        items =
+                            filteredTransactions,
+                        key = { transaction ->
+                            transaction.id
+                        }
+                    ) { transaction ->
                         TransactionCard(
-                            transaction = transaction,
+                            transaction =
+                                transaction,
                             currencyCode =
                                 settings.currencyCode,
+                            dateFormat =
+                                settings.dateFormat,
                             onClick = {
                                 onEditTransaction(
                                     transaction.id
@@ -245,48 +310,56 @@ fun TransactionsScreen(
 @Composable
 private fun TransactionFilterSelector(
     selectedFilter: TransactionFilter,
-    onFilterSelected: (TransactionFilter) -> Unit,
+    onFilterSelected:
+        (TransactionFilter) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = modifier,
+        modifier =
+            modifier,
         horizontalArrangement =
             Arrangement.spacedBy(8.dp)
     ) {
         TransactionFilterOption(
             label = "All",
             selected =
-                selectedFilter == TransactionFilter.All,
+                selectedFilter ==
+                    TransactionFilter.All,
             onClick = {
                 onFilterSelected(
                     TransactionFilter.All
                 )
             },
-            modifier = Modifier.weight(1f)
+            modifier =
+                Modifier.weight(1f)
         )
 
         TransactionFilterOption(
             label = "Expenses",
             selected =
-                selectedFilter == TransactionFilter.Expense,
+                selectedFilter ==
+                    TransactionFilter.Expense,
             onClick = {
                 onFilterSelected(
                     TransactionFilter.Expense
                 )
             },
-            modifier = Modifier.weight(1f)
+            modifier =
+                Modifier.weight(1f)
         )
 
         TransactionFilterOption(
             label = "Income",
             selected =
-                selectedFilter == TransactionFilter.Income,
+                selectedFilter ==
+                    TransactionFilter.Income,
             onClick = {
                 onFilterSelected(
                     TransactionFilter.Income
                 )
             },
-            modifier = Modifier.weight(1f)
+            modifier =
+                Modifier.weight(1f)
         )
     }
 }
@@ -305,9 +378,13 @@ private fun TransactionFilterOption(
             )
             .background(
                 if (selected) {
-                    MaterialTheme.colorScheme.primary
+                    MaterialTheme
+                        .colorScheme
+                        .primary
                 } else {
-                    MaterialTheme.colorScheme.surfaceVariant
+                    MaterialTheme
+                        .colorScheme
+                        .surfaceVariant
                 }
             )
             .clickable {
@@ -320,12 +397,17 @@ private fun TransactionFilterOption(
             Alignment.Center
     ) {
         Text(
-            text = label,
+            text =
+                label,
             color =
                 if (selected) {
-                    MaterialTheme.colorScheme.onPrimary
+                    MaterialTheme
+                        .colorScheme
+                        .onPrimary
                 } else {
-                    MaterialTheme.colorScheme.onSurface
+                    MaterialTheme
+                        .colorScheme
+                        .onSurface
                 },
             fontWeight =
                 if (selected) {

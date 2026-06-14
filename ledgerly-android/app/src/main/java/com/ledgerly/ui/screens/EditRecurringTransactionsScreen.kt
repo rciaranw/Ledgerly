@@ -41,72 +41,126 @@ import com.ledgerly.ui.components.LedgerlyNegativeTextButton
 import com.ledgerly.ui.components.LedgerlyPrimaryButton
 import com.ledgerly.ui.theme.LedgerlyExpenseRed
 import com.ledgerly.ui.theme.LedgerlyIncomeGreen
+import com.ledgerly.utils.DateHelper
 import com.ledgerly.viewmodel.CategoryViewModel
 import com.ledgerly.viewmodel.RecurringTransactionViewModel
+import com.ledgerly.viewmodel.SettingsViewModel
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(
+    ExperimentalMaterial3Api::class
+)
 @Composable
 fun EditRecurringTransactionScreen(
     recurringId: String,
-    recurringTransactionViewModel: RecurringTransactionViewModel,
-    categoryViewModel: CategoryViewModel,
+    recurringTransactionViewModel:
+        RecurringTransactionViewModel,
+    categoryViewModel:
+        CategoryViewModel,
+    settingsViewModel:
+        SettingsViewModel,
     onSaved: () -> Unit,
     onDeleted: () -> Unit,
     onCancel: () -> Unit
 ) {
+    val settings =
+        settingsViewModel.settings
+
     val recurring =
         recurringTransactionViewModel
             .recurringTransactions
             .firstOrNull { transaction ->
-                transaction.id == recurringId
+                transaction.id ==
+                    recurringId
             }
 
-    if (recurring == null) {
+    if (
+        recurring == null
+    ) {
         Text(
-            text = "Recurring transaction not found",
-            modifier = Modifier.padding(16.dp)
+            text =
+                "Recurring transaction not found",
+            modifier =
+                Modifier.padding(16.dp)
         )
+
         return
     }
 
-    var title by remember(recurring.id) {
-        mutableStateOf(recurring.title)
+    var title by remember(
+        recurring.id
+    ) {
+        mutableStateOf(
+            recurring.title
+        )
     }
 
-    var notes by remember(recurring.id) {
-        mutableStateOf(recurring.notes)
+    var notes by remember(
+        recurring.id
+    ) {
+        mutableStateOf(
+            recurring.notes
+        )
     }
 
-    var amountText by remember(recurring.id) {
-        mutableStateOf(recurring.amount.toString())
+    var amountText by remember(
+        recurring.id
+    ) {
+        mutableStateOf(
+            recurring.amount
+                .toString()
+        )
     }
 
-    var selectedCategory by remember(recurring.id) {
-        mutableStateOf(recurring.category)
+    var selectedCategory by remember(
+        recurring.id
+    ) {
+        mutableStateOf(
+            recurring.category
+        )
     }
 
-    var intervalText by remember(recurring.id) {
-        mutableStateOf(recurring.interval.toString())
+    var intervalText by remember(
+        recurring.id
+    ) {
+        mutableStateOf(
+            recurring.interval
+                .toString()
+        )
     }
 
-    var selectedUnit by remember(recurring.id) {
-        mutableStateOf(recurring.unit)
+    var selectedUnit by remember(
+        recurring.id
+    ) {
+        mutableStateOf(
+            recurring.unit
+        )
     }
 
-    var isIncome by remember(recurring.id) {
-        mutableStateOf(recurring.isIncome)
+    var isIncome by remember(
+        recurring.id
+    ) {
+        mutableStateOf(
+            recurring.isIncome
+        )
     }
 
-    var selectedStartDate by remember(recurring.id) {
-        mutableStateOf(recurring.startDate)
+    var selectedStartDate by remember(
+        recurring.id
+    ) {
+        mutableStateOf(
+            recurring.startDate
+        )
     }
 
-    var selectedEndDate by remember(recurring.id) {
-        mutableStateOf(recurring.endDate)
+    var selectedEndDate by remember(
+        recurring.id
+    ) {
+        mutableStateOf(
+            recurring.endDate
+        )
     }
 
     var categoryExpanded by remember {
@@ -126,7 +180,9 @@ fun EditRecurringTransactionScreen(
     }
 
     var validationMessage by remember {
-        mutableStateOf<String?>(null)
+        mutableStateOf<String?>(
+            null
+        )
     }
 
     var showDeleteDialog by remember {
@@ -136,28 +192,33 @@ fun EditRecurringTransactionScreen(
     val categories =
         categoryViewModel.allCategories
 
-    val units = listOf(
-        "DAILY" to "Daily",
-        "WEEKLY" to "Weekly",
-        "MONTHLY" to "Monthly",
-        "YEARLY" to "Yearly"
-    )
+    val units =
+        listOf(
+            "DAILY" to "Daily",
+            "WEEKLY" to "Weekly",
+            "MONTHLY" to "Monthly",
+            "YEARLY" to "Yearly"
+        )
 
-    val dateFormatter =
-        remember {
-            DateTimeFormatter.ofPattern("dd/MM/yyyy")
-        }
-
-    if (showDeleteDialog) {
+    if (
+        showDeleteDialog
+    ) {
         AlertDialog(
             onDismissRequest = {
-                showDeleteDialog = false
+                showDeleteDialog =
+                    false
             },
             title = {
-                Text("Delete Recurring Transaction?")
+                Text(
+                    text =
+                        "Delete Recurring Transaction?"
+                )
             },
             text = {
-                Text("This cannot be undone.")
+                Text(
+                    text =
+                        "This cannot be undone."
+                )
             },
             confirmButton = {
                 TextButton(
@@ -167,25 +228,32 @@ fun EditRecurringTransactionScreen(
                                 recurring
                             )
 
-                        showDeleteDialog = false
+                        showDeleteDialog =
+                            false
+
                         onDeleted()
                     }
                 ) {
                     Text(
-                        text = "Delete",
-                        color = LedgerlyExpenseRed
+                        text =
+                            "Delete",
+                        color =
+                            LedgerlyExpenseRed
                     )
                 }
             },
             dismissButton = {
                 TextButton(
                     onClick = {
-                        showDeleteDialog = false
+                        showDeleteDialog =
+                            false
                     }
                 ) {
                     Text(
-                        text = "Cancel",
-                        color = LedgerlyExpenseRed
+                        text =
+                            "Cancel",
+                        color =
+                            LedgerlyExpenseRed
                     )
                 }
             }
@@ -200,12 +268,17 @@ fun EditRecurringTransactionScreen(
             )
             .padding(16.dp),
         verticalArrangement =
-            Arrangement.spacedBy(16.dp)
+            Arrangement.spacedBy(
+                16.dp
+            )
     ) {
         Text(
-            text = "Edit Recurring",
+            text =
+                "Edit Recurring",
             style =
-                MaterialTheme.typography.headlineMedium,
+                MaterialTheme
+                    .typography
+                    .headlineMedium,
             fontWeight =
                 FontWeight.Bold
         )
@@ -214,28 +287,38 @@ fun EditRecurringTransactionScreen(
             modifier =
                 Modifier.fillMaxWidth(),
             shape =
-                RoundedCornerShape(20.dp),
+                RoundedCornerShape(
+                    20.dp
+                ),
             colors =
                 CardDefaults.cardColors(
                     containerColor =
-                        MaterialTheme.colorScheme.surfaceVariant
+                        MaterialTheme
+                            .colorScheme
+                            .surfaceVariant
                 )
         ) {
             Column(
                 modifier =
-                    Modifier.padding(16.dp),
+                    Modifier.padding(
+                        16.dp
+                    ),
                 verticalArrangement =
-                    Arrangement.spacedBy(16.dp)
+                    Arrangement.spacedBy(
+                        16.dp
+                    )
             ) {
                 IncomeExpenseToggle(
-                    isIncome = isIncome,
+                    isIncome =
+                        isIncome,
                     onSelected = {
                         isIncome = it
                     }
                 )
 
                 ExposedDropdownMenuBox(
-                    expanded = categoryExpanded,
+                    expanded =
+                        categoryExpanded,
                     onExpandedChange = {
                         categoryExpanded =
                             !categoryExpanded
@@ -245,9 +328,13 @@ fun EditRecurringTransactionScreen(
                         value =
                             selectedCategory.name,
                         onValueChange = {},
-                        readOnly = true,
+                        readOnly =
+                            true,
                         label = {
-                            Text("Category")
+                            Text(
+                                text =
+                                    "Category"
+                            )
                         },
                         trailingIcon = {
                             ExposedDropdownMenuDefaults
@@ -262,19 +349,25 @@ fun EditRecurringTransactionScreen(
                     )
 
                     ExposedDropdownMenu(
-                        expanded = categoryExpanded,
+                        expanded =
+                            categoryExpanded,
                         onDismissRequest = {
-                            categoryExpanded = false
+                            categoryExpanded =
+                                false
                         }
                     ) {
                         categories.forEach { category ->
                             DropdownMenuItem(
                                 text = {
-                                    Text(category.name)
+                                    Text(
+                                        text =
+                                            category.name
+                                    )
                                 },
                                 onClick = {
                                     selectedCategory =
                                         category
+
                                     categoryExpanded =
                                         false
                                 }
@@ -284,46 +377,62 @@ fun EditRecurringTransactionScreen(
                 }
 
                 OutlinedTextField(
-                    value = title,
+                    value =
+                        title,
                     onValueChange = {
                         title = it
-                        validationMessage = null
+                        validationMessage =
+                            null
                     },
                     label = {
-                        Text("Title")
+                        Text(
+                            text =
+                                "Title"
+                        )
                     },
                     modifier =
                         Modifier.fillMaxWidth()
                 )
 
                 OutlinedTextField(
-                    value = amountText,
+                    value =
+                        amountText,
                     onValueChange = {
                         amountText = it
-                        validationMessage = null
+                        validationMessage =
+                            null
                     },
                     label = {
-                        Text("Amount")
+                        Text(
+                            text =
+                                "Amount"
+                        )
                     },
                     modifier =
                         Modifier.fillMaxWidth()
                 )
 
                 OutlinedTextField(
-                    value = intervalText,
+                    value =
+                        intervalText,
                     onValueChange = {
                         intervalText = it
-                        validationMessage = null
+                        validationMessage =
+                            null
                     },
                     label = {
-                        Text("Every")
+                        Text(
+                            text =
+                                "Every"
+                        )
                     },
                     modifier =
                         Modifier.fillMaxWidth()
                 )
 
                 ExposedDropdownMenuBox(
-                    expanded = unitExpanded,
+                    expanded =
+                        unitExpanded,
                     onExpandedChange = {
                         unitExpanded =
                             !unitExpanded
@@ -331,16 +440,22 @@ fun EditRecurringTransactionScreen(
                 ) {
                     val selectedUnitLabel =
                         units.firstOrNull {
-                            it.first == selectedUnit
-                        }?.second ?: "Monthly"
+                            it.first ==
+                                selectedUnit
+                        }?.second
+                            ?: "Monthly"
 
                     OutlinedTextField(
                         value =
                             selectedUnitLabel,
                         onValueChange = {},
-                        readOnly = true,
+                        readOnly =
+                            true,
                         label = {
-                            Text("Frequency")
+                            Text(
+                                text =
+                                    "Frequency"
+                            )
                         },
                         trailingIcon = {
                             ExposedDropdownMenuDefaults
@@ -355,19 +470,25 @@ fun EditRecurringTransactionScreen(
                     )
 
                     ExposedDropdownMenu(
-                        expanded = unitExpanded,
+                        expanded =
+                            unitExpanded,
                         onDismissRequest = {
-                            unitExpanded = false
+                            unitExpanded =
+                                false
                         }
                     ) {
                         units.forEach { unit ->
                             DropdownMenuItem(
                                 text = {
-                                    Text(unit.second)
+                                    Text(
+                                        text =
+                                            unit.second
+                                    )
                                 },
                                 onClick = {
                                     selectedUnit =
                                         unit.first
+
                                     unitExpanded =
                                         false
                                 }
@@ -378,59 +499,90 @@ fun EditRecurringTransactionScreen(
 
                 OutlinedTextField(
                     value =
-                        selectedStartDate.format(
-                            dateFormatter
+                        DateHelper.formatDate(
+                            date =
+                                selectedStartDate,
+                            format =
+                                settings.dateFormat
                         ),
                     onValueChange = {},
-                    readOnly = true,
+                    readOnly =
+                        true,
                     label = {
-                        Text("Start Date")
+                        Text(
+                            text =
+                                "Start Date"
+                        )
                     },
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
-                            showStartDatePicker = true
+                            showStartDatePicker =
+                                true
                         }
                 )
 
                 OutlinedTextField(
                     value =
                         selectedEndDate
-                            ?.format(dateFormatter)
+                            ?.let { endDate ->
+                                DateHelper.formatDate(
+                                    date =
+                                        endDate,
+                                    format =
+                                        settings.dateFormat
+                                )
+                            }
                             ?: "No end date",
                     onValueChange = {},
-                    readOnly = true,
+                    readOnly =
+                        true,
                     label = {
-                        Text("End Date")
+                        Text(
+                            text =
+                                "End Date"
+                        )
                     },
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
-                            showEndDatePicker = true
+                            showEndDatePicker =
+                                true
                         }
                 )
 
-                if (selectedEndDate != null) {
+                if (
+                    selectedEndDate != null
+                ) {
                     LedgerlyNegativeTextButton(
-                        text = "Remove End Date",
+                        text =
+                            "Remove End Date",
                         onClick = {
-                            selectedEndDate = null
-                            validationMessage = null
+                            selectedEndDate =
+                                null
+
+                            validationMessage =
+                                null
                         },
                         modifier =
                             Modifier.align(
-                                Alignment.CenterHorizontally
+                                Alignment
+                                    .CenterHorizontally
                             )
                     )
                 }
 
                 OutlinedTextField(
-                    value = notes,
+                    value =
+                        notes,
                     onValueChange = {
                         notes = it
                     },
                     label = {
-                        Text("Notes")
+                        Text(
+                            text =
+                                "Notes"
+                        )
                     },
                     modifier =
                         Modifier.fillMaxWidth()
@@ -438,20 +590,26 @@ fun EditRecurringTransactionScreen(
 
                 validationMessage?.let { message ->
                     Text(
-                        text = message,
+                        text =
+                            message,
                         color =
-                            MaterialTheme.colorScheme.error
+                            MaterialTheme
+                                .colorScheme
+                                .error
                     )
                 }
 
                 LedgerlyPrimaryButton(
-                    text = "Save Changes",
+                    text =
+                        "Save Changes",
                     onClick = {
                         val amount =
-                            amountText.toDoubleOrNull()
+                            amountText
+                                .toDoubleOrNull()
 
                         val interval =
-                            intervalText.toIntOrNull()
+                            intervalText
+                                .toIntOrNull()
 
                         if (
                             amount == null ||
@@ -459,6 +617,7 @@ fun EditRecurringTransactionScreen(
                         ) {
                             validationMessage =
                                 "Please enter a valid amount."
+
                             return@LedgerlyPrimaryButton
                         }
 
@@ -468,21 +627,30 @@ fun EditRecurringTransactionScreen(
                         ) {
                             validationMessage =
                                 "Please enter a valid interval."
+
                             return@LedgerlyPrimaryButton
                         }
 
                         if (
                             selectedEndDate != null &&
                             selectedEndDate!!
-                                .isBefore(selectedStartDate)
+                                .isBefore(
+                                    selectedStartDate
+                                )
                         ) {
                             validationMessage =
                                 "End date cannot be before the start date."
+
                             return@LedgerlyPrimaryButton
                         }
 
-                        val resetGenerationDate =
-                            selectedStartDate != recurring.startDate
+                        val scheduleChanged =
+                            selectedStartDate !=
+                                recurring.startDate ||
+                                selectedUnit !=
+                                recurring.unit ||
+                                interval !=
+                                recurring.interval
 
                         recurringTransactionViewModel
                             .saveRecurringTransaction(
@@ -491,22 +659,30 @@ fun EditRecurringTransactionScreen(
                                         title.ifBlank {
                                             selectedCategory.name
                                         },
-                                    notes = notes,
-                                    amount = amount,
+                                    notes =
+                                        notes,
+                                    amount =
+                                        amount,
                                     category =
                                         selectedCategory,
-                                    isIncome = isIncome,
-                                    interval = interval,
-                                    unit = selectedUnit,
+                                    isIncome =
+                                        isIncome,
+                                    interval =
+                                        interval,
+                                    unit =
+                                        selectedUnit,
                                     startDate =
                                         selectedStartDate,
                                     endDate =
                                         selectedEndDate,
                                     lastGeneratedDate =
-                                        if (resetGenerationDate) {
+                                        if (
+                                            scheduleChanged
+                                        ) {
                                             null
                                         } else {
-                                            recurring.lastGeneratedDate
+                                            recurring
+                                                .lastGeneratedDate
                                         }
                                 )
                             )
@@ -515,34 +691,43 @@ fun EditRecurringTransactionScreen(
                     },
                     modifier =
                         Modifier.align(
-                            Alignment.CenterHorizontally
+                            Alignment
+                                .CenterHorizontally
                         )
                 )
 
                 LedgerlyNegativeTextButton(
-                    text = "Delete Recurring",
+                    text =
+                        "Delete Recurring",
                     onClick = {
-                        showDeleteDialog = true
+                        showDeleteDialog =
+                            true
                     },
                     modifier =
                         Modifier.align(
-                            Alignment.CenterHorizontally
+                            Alignment
+                                .CenterHorizontally
                         )
                 )
 
                 LedgerlyNegativeTextButton(
-                    text = "Cancel",
-                    onClick = onCancel,
+                    text =
+                        "Cancel",
+                    onClick =
+                        onCancel,
                     modifier =
                         Modifier.align(
-                            Alignment.CenterHorizontally
+                            Alignment
+                                .CenterHorizontally
                         )
                 )
             }
         }
     }
 
-    if (showStartDatePicker) {
+    if (
+        showStartDatePicker
+    ) {
         val startDatePickerState =
             rememberDatePickerState(
                 initialSelectedDateMillis =
@@ -556,7 +741,8 @@ fun EditRecurringTransactionScreen(
 
         DatePickerDialog(
             onDismissRequest = {
-                showStartDatePicker = false
+                showStartDatePicker =
+                    false
             },
             confirmButton = {
                 TextButton(
@@ -574,25 +760,35 @@ fun EditRecurringTransactionScreen(
                                             selectedStartDate
                                         )
                                 ) {
-                                    selectedEndDate = null
+                                    selectedEndDate =
+                                        null
                                 }
 
-                                validationMessage = null
+                                validationMessage =
+                                    null
                             }
 
-                        showStartDatePicker = false
+                        showStartDatePicker =
+                            false
                     }
                 ) {
-                    Text("Confirm")
+                    Text(
+                        text =
+                            "Confirm"
+                    )
                 }
             },
             dismissButton = {
                 TextButton(
                     onClick = {
-                        showStartDatePicker = false
+                        showStartDatePicker =
+                            false
                     }
                 ) {
-                    Text("Cancel")
+                    Text(
+                        text =
+                            "Cancel"
+                    )
                 }
             }
         ) {
@@ -603,7 +799,9 @@ fun EditRecurringTransactionScreen(
         }
     }
 
-    if (showEndDatePicker) {
+    if (
+        showEndDatePicker
+    ) {
         val endDatePickerState =
             rememberDatePickerState(
                 initialSelectedDateMillis =
@@ -617,7 +815,8 @@ fun EditRecurringTransactionScreen(
 
         DatePickerDialog(
             onDismissRequest = {
-                showEndDatePicker = false
+                showEndDatePicker =
+                    false
             },
             confirmButton = {
                 TextButton(
@@ -638,23 +837,33 @@ fun EditRecurringTransactionScreen(
                                 } else {
                                     selectedEndDate =
                                         selectedDate
-                                    validationMessage = null
+
+                                    validationMessage =
+                                        null
                                 }
                             }
 
-                        showEndDatePicker = false
+                        showEndDatePicker =
+                            false
                     }
                 ) {
-                    Text("Confirm")
+                    Text(
+                        text =
+                            "Confirm"
+                    )
                 }
             },
             dismissButton = {
                 TextButton(
                     onClick = {
-                        showEndDatePicker = false
+                        showEndDatePicker =
+                            false
                     }
                 ) {
-                    Text("Cancel")
+                    Text(
+                        text =
+                            "Cancel"
+                    )
                 }
             }
         ) {
@@ -666,7 +875,8 @@ fun EditRecurringTransactionScreen(
     }
 }
 
-private fun Long.toLocalDate(): LocalDate {
+private fun Long.toLocalDate():
+    LocalDate {
     return Instant
         .ofEpochMilli(this)
         .atZone(
@@ -686,17 +896,22 @@ private fun IncomeExpenseToggle(
         shape =
             RoundedCornerShape(50),
         color =
-            MaterialTheme.colorScheme.background
+            MaterialTheme
+                .colorScheme
+                .background
     ) {
         Row(
             modifier =
                 Modifier.padding(4.dp),
             horizontalArrangement =
-                Arrangement.spacedBy(4.dp)
+                Arrangement.spacedBy(
+                    4.dp
+                )
         ) {
             ToggleOption(
                 text = "Expense",
-                selected = !isIncome,
+                selected =
+                    !isIncome,
                 selectedColour =
                     LedgerlyExpenseRed,
                 onClick = {
@@ -708,7 +923,8 @@ private fun IncomeExpenseToggle(
 
             ToggleOption(
                 text = "Income",
-                selected = isIncome,
+                selected =
+                    isIncome,
                 selectedColour =
                     LedgerlyIncomeGreen,
                 onClick = {
@@ -754,7 +970,8 @@ private fun ToggleOption(
             Alignment.Center
     ) {
         Text(
-            text = text,
+            text =
+                text,
             color =
                 if (selected) {
                     MaterialTheme

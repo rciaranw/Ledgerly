@@ -4,17 +4,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -31,120 +26,131 @@ import com.ledgerly.utils.DateHelper
 fun TransactionCard(
     transaction: Transaction,
     currencyCode: String,
-    onClick: (() -> Unit)? = null
+    dateFormat: String = "DD/MM/YYYY",
+    onClick: () -> Unit
 ) {
-    val clickableModifier =
-        if (onClick == null) {
-            Modifier
-        } else {
-            Modifier.clickable {
-                onClick()
-            }
-        }
-
-    val formattedAmount =
+    val amountText =
         CurrencyFormatter.format(
-            amount = transaction.amount,
-            currencyCode = currencyCode
+            amount =
+                transaction.amount,
+            currencyCode =
+                currencyCode
         )
 
-    val displayAmount =
+    val signedAmountText =
         if (transaction.isIncome) {
-            formattedAmount
+            "+$amountText"
         } else {
-            "-$formattedAmount"
+            "-$amountText"
         }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .then(clickableModifier),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(
-            containerColor =
-                MaterialTheme.colorScheme.surfaceVariant
-        ),
+            .clickable {
+                onClick()
+            },
+        shape =
+            RoundedCornerShape(18.dp),
+        colors =
+            CardDefaults.cardColors(
+                containerColor =
+                    MaterialTheme
+                        .colorScheme
+                        .surfaceVariant
+            ),
         elevation =
-            CardDefaults.cardElevation(defaultElevation = 2.dp)
+            CardDefaults.cardElevation(
+                defaultElevation =
+                    2.dp
+            )
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(
-                    horizontal = 16.dp,
-                    vertical = 18.dp
-                ),
+                .padding(16.dp),
             horizontalArrangement =
-                Arrangement.SpaceBetween,
+                Arrangement.spacedBy(
+                    12.dp
+                ),
             verticalAlignment =
                 Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier.weight(1f),
-                verticalAlignment =
-                    Alignment.CenterVertically
-            ) {
-                Surface(
-                    modifier = Modifier.size(46.dp),
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    Row(
-                        horizontalArrangement =
-                            Arrangement.Center,
-                        verticalAlignment =
-                            Alignment.CenterVertically
-                    ) {
-                        CategoryIcon(
-                            iconName =
-                                transaction.category.systemIcon,
-                            contentDescription =
-                                transaction.category.name,
-                            modifier = Modifier.size(25.dp)
-                        )
-                    }
-                }
+            CategoryIconView(
+                category =
+                    transaction.category,
+                isIncome =
+                    transaction.isIncome
+            )
 
-                Spacer(
-                    modifier = Modifier.width(14.dp)
+            Column(
+                modifier =
+                    Modifier.weight(1f),
+                verticalArrangement =
+                    Arrangement.spacedBy(
+                        4.dp
+                    )
+            ) {
+                Text(
+                    text =
+                        transaction.title,
+                    style =
+                        MaterialTheme
+                            .typography
+                            .titleMedium,
+                    fontWeight =
+                        FontWeight.Bold
                 )
 
-                Column(
-                    verticalArrangement =
-                        Arrangement.spacedBy(3.dp)
-                ) {
-                    Text(
-                        text = transaction.title,
-                        style =
-                            MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
+                Text(
+                    text =
+                        transaction.category.name,
+                    style =
+                        MaterialTheme
+                            .typography
+                            .bodySmall,
+                    color =
+                        MaterialTheme
+                            .colorScheme
+                            .onSurfaceVariant
+                )
 
-                    Text(
-                        text = transaction.category.name,
-                        style =
-                            MaterialTheme.typography.bodyMedium
-                    )
-
-                    Text(
-                        text = DateHelper.formatDate(
-                            transaction.date
+                Text(
+                    text =
+                        DateHelper.formatDate(
+                            date =
+                                transaction.date,
+                            format =
+                                dateFormat
                         ),
-                        style =
-                            MaterialTheme.typography.bodySmall
-                    )
-                }
+                    style =
+                        MaterialTheme
+                            .typography
+                            .bodySmall,
+                    color =
+                        MaterialTheme
+                            .colorScheme
+                            .onSurfaceVariant
+                )
             }
 
             Text(
-                text = displayAmount,
-                color = if (transaction.isIncome) {
-                    LedgerlyIncomeGreen
-                } else {
-                    LedgerlyExpenseRed
-                },
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
+                text =
+                    signedAmountText,
+                color =
+                    if (
+                        transaction.isIncome
+                    ) {
+                        LedgerlyIncomeGreen
+                    } else {
+                        LedgerlyExpenseRed
+                    },
+                style =
+                    MaterialTheme
+                        .typography
+                        .titleMedium,
+                fontWeight =
+                    FontWeight.Bold
             )
         }
     }
