@@ -17,22 +17,31 @@ class SettingsViewModel(
     application: Application
 ) : AndroidViewModel(application) {
 
-    private val repository: SettingsRepository
+    private val repository:
+        SettingsRepository
 
-    var settings by mutableStateOf(Settings())
+    var settings by mutableStateOf(
+        Settings()
+    )
         private set
 
     init {
-        val database = DatabaseProvider.getDatabase(application)
+        val database =
+            DatabaseProvider.getDatabase(
+                application
+            )
 
-        repository = SettingsRepository(
-            settingsDao = database.settingsDao()
-        )
+        repository =
+            SettingsRepository(
+                settingsDao =
+                    database.settingsDao()
+            )
 
         viewModelScope.launch {
             repository.settings.collect { entity ->
                 if (entity != null) {
-                    settings = entity.toModel()
+                    settings =
+                        entity.toModel()
                 }
             }
         }
@@ -46,58 +55,78 @@ class SettingsViewModel(
         }
     }
 
-    fun setCurrency(currencyCode: String) {
-        settings = settings.copy(
-            currencyCode = currencyCode
-        )
+    fun setCurrency(
+        currencyCode: String
+    ) {
+        settings =
+            settings.copy(
+                currencyCode =
+                    currencyCode
+            )
 
         saveSettings()
     }
 
-    fun setWeekStartDay(day: Int) {
+    fun setWeekStartDay(
+        day: Int
+    ) {
         if (day !in 1..7) {
             return
         }
 
-        settings = settings.copy(
-            weekStartDay = day
-        )
+        settings =
+            settings.copy(
+                weekStartDay = day
+            )
 
         saveSettings()
     }
 
-    fun setMonthStartDay(day: Int) {
+    fun setMonthStartDay(
+        day: Int
+    ) {
         if (day !in 1..31) {
             return
         }
 
-        settings = settings.copy(
-            monthStartDay = day
-        )
+        settings =
+            settings.copy(
+                monthStartDay = day
+            )
 
         saveSettings()
     }
 
-    fun setCarryOverEnabled(enabled: Boolean) {
-        settings = settings.copy(
-            carryOverEnabled = enabled
-        )
+    fun setCarryOverEnabled(
+        enabled: Boolean
+    ) {
+        settings =
+            settings.copy(
+                carryOverEnabled =
+                    enabled
+            )
 
         saveSettings()
     }
 
     fun toggleCarryOver() {
-        settings = settings.copy(
-            carryOverEnabled = !settings.carryOverEnabled
-        )
+        settings =
+            settings.copy(
+                carryOverEnabled =
+                    !settings
+                        .carryOverEnabled
+            )
 
         saveSettings()
     }
 
-    fun setTheme(theme: String) {
-        settings = settings.copy(
-            theme = theme
-        )
+    fun setTheme(
+        theme: String
+    ) {
+        settings =
+            settings.copy(
+                theme = theme
+            )
 
         saveSettings()
     }
