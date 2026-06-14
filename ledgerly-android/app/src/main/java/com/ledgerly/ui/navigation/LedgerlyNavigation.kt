@@ -396,11 +396,14 @@ fun LedgerlyNavigation(
         }
     ) { innerPadding ->
         NavHost(
-            navController = navController,
+            navController =
+                navController,
             startDestination =
                 LedgerlyTab.Home.route,
             modifier =
-                Modifier.padding(innerPadding)
+                Modifier.padding(
+                    innerPadding
+                )
         ) {
             composable(
                 LedgerlyTab.Home.route
@@ -842,6 +845,8 @@ fun LedgerlyNavigation(
                         recurringTransactionViewModel,
                     categoryViewModel =
                         categoryViewModel,
+                    settingsViewModel =
+                        settingsViewModel,
                     onSaved = {
                         navController.popBackStack()
                     },
@@ -857,6 +862,11 @@ fun LedgerlyNavigation(
                 RecurringTransactionsScreen(
                     recurringTransactionViewModel =
                         recurringTransactionViewModel,
+                    settingsViewModel =
+                        settingsViewModel,
+                    onBack = {
+                        navController.popBackStack()
+                    },
                     onAddRecurring = {
                         navController.navigate(
                             LedgerlyTab
@@ -906,6 +916,8 @@ fun LedgerlyNavigation(
                         recurringTransactionViewModel,
                     categoryViewModel =
                         categoryViewModel,
+                    settingsViewModel =
+                        settingsViewModel,
                     onSaved = {
                         navController.popBackStack()
                     },
