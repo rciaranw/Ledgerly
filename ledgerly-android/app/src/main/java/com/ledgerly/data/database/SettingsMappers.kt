@@ -2,22 +2,50 @@ package com.ledgerly.data.database
 
 import com.ledgerly.data.models.Settings
 
-fun Settings.toEntity(): SettingsEntity {
-    return SettingsEntity(
-        currencyCode = this.currencyCode,
-        weekStartDay = this.weekStartDay,
-        monthStartDay = this.monthStartDay,
-        carryOverEnabled = this.carryOverEnabled,
-        theme = this.theme
+fun SettingsEntity.toModel(): Settings {
+    return Settings(
+        currencyCode =
+            currencyCode,
+        dateFormat =
+            dateFormat,
+        weekStartDay =
+            weekStartDay,
+        monthStartDay =
+            monthStartDay,
+        carryOverEnabled =
+            carryOverEnabled,
+        theme =
+            theme,
+        language =
+            language,
+        textSize =
+            textSize,
+        biometricLockEnabled =
+            biometricLockEnabled
     )
 }
 
-fun SettingsEntity.toModel(): Settings {
-    return Settings(
-        currencyCode = this.currencyCode,
-        weekStartDay = this.weekStartDay,
-        monthStartDay = this.monthStartDay,
-        carryOverEnabled = this.carryOverEnabled,
-        theme = this.theme
+fun Settings.toEntity(): SettingsEntity {
+    return SettingsEntity(
+        id =
+            "main_settings",
+        currencyCode =
+            currencyCode,
+        dateFormat =
+            dateFormat,
+        weekStartDay =
+            weekStartDay,
+        monthStartDay =
+            monthStartDay,
+        carryOverEnabled =
+            carryOverEnabled,
+        theme =
+            theme,
+        language =
+            language,
+        textSize =
+            textSize,
+        biometricLockEnabled =
+            biometricLockEnabled
     )
 }
