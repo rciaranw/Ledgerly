@@ -67,6 +67,18 @@ class SettingsViewModel(
         saveSettings()
     }
 
+    fun setDateFormat(
+        dateFormat: String
+    ) {
+        settings =
+            settings.copy(
+                dateFormat =
+                    dateFormat
+            )
+
+        saveSettings()
+    }
+
     fun setWeekStartDay(
         day: Int
     ) {
@@ -76,7 +88,8 @@ class SettingsViewModel(
 
         settings =
             settings.copy(
-                weekStartDay = day
+                weekStartDay =
+                    day
             )
 
         saveSettings()
@@ -91,7 +104,8 @@ class SettingsViewModel(
 
         settings =
             settings.copy(
-                monthStartDay = day
+                monthStartDay =
+                    day
             )
 
         saveSettings()
@@ -125,7 +139,44 @@ class SettingsViewModel(
     ) {
         settings =
             settings.copy(
-                theme = theme
+                theme =
+                    theme
+            )
+
+        saveSettings()
+    }
+
+    fun setLanguage(
+        language: String
+    ) {
+        settings =
+            settings.copy(
+                language =
+                    language
+            )
+
+        saveSettings()
+    }
+
+    fun setTextSize(
+        textSize: String
+    ) {
+        settings =
+            settings.copy(
+                textSize =
+                    textSize
+            )
+
+        saveSettings()
+    }
+
+    fun setBiometricLockEnabled(
+        enabled: Boolean
+    ) {
+        settings =
+            settings.copy(
+                biometricLockEnabled =
+                    enabled
             )
 
         saveSettings()

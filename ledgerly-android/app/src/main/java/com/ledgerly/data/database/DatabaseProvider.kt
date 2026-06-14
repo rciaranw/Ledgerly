@@ -6,20 +6,38 @@ import androidx.room.Room
 object DatabaseProvider {
 
     @Volatile
-    private var database: LedgerlyDatabase? = null
+    private var database:
+        LedgerlyDatabase? = null
 
-    fun getDatabase(context: Context): LedgerlyDatabase {
-        return database ?: synchronized(this) {
-            val instance = Room.databaseBuilder(
-                context.applicationContext,
-                LedgerlyDatabase::class.java,
-                "ledgerly_database"
-            )
-                .fallbackToDestructiveMigration(false)
-                .build()
+    fun getDatabase(
+        context: Context
+    ): LedgerlyDatabase {
+        return database
+            ?: synchronized(this) {
+                val existingDatabase =
+                    database
 
-            database = instance
-            instance
-        }
+                if (existingDatabase != null) {
+                    return@synchronized
+                        existingDatabase
+                }
+
+                val instance =
+                    Room.databaseBuilder(
+                        context.applicationContext,
+                        LedgerlyDatabase::class.java,
+                        "ledgerly_database"
+                    )
+                        .addMigrations(
+                            DatabaseMigrations
+                                .MIGRATION_5_6
+                        )
+                        .build()
+
+                database =
+                    instance
+
+                instance
+            }
     }
 }

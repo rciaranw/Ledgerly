@@ -2,20 +2,71 @@ package com.ledgerly.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val LedgerlyBrandNavy = Color(0xFF0F172A)
-val LedgerlyBrandSlate = Color(0xFF1E293B)
-val LedgerlyBrandTurquoise = Color(0xFF22D3EE)
-val LedgerlyBrandTurquoiseLight = Color(0xFF67E8F9)
-val LedgerlyBrandOffWhite = Color(0xFFF8FAFC)
+val LedgerlyBrandTurquoise =
+    Color(0xFF00B8A9)
 
-val LedgerlyWhiteBackground = Color(0xFFFFFFFF)
-val LedgerlyWhiteSurface = Color(0xFFF3F7F7)
-val LedgerlyWhiteText = Color(0xFF111827)
+val LedgerlyBrandTurquoiseLight =
+    Color(0xFF7DE2D7)
 
-val LedgerlyDarkBackground = Color(0xFF050505)
-val LedgerlyDarkSurface = Color(0xFF151515)
-val LedgerlyDarkText = Color(0xFFF8FAFC)
+val LedgerlyBrandNavy =
+    Color(0xFF0D1B2A)
 
-val LedgerlyIncomeGreen = Color(0xFF2E7D32)
-val LedgerlyExpenseRed = Color(0xFFC62828)
-val LedgerlyWarningAmber = Color(0xFFFFA000)
+val LedgerlyBrandSlate =
+    Color(0xFF1B263B)
+
+val LedgerlyBrandOffWhite =
+    Color(0xFFF6F8FA)
+
+val LedgerlyWhiteBackground =
+    Color(0xFFF8FAFC)
+
+val LedgerlyWhiteSurface =
+    Color(0xFFEFF3F6)
+
+val LedgerlyWhiteText =
+    Color(0xFF17212B)
+
+val LedgerlyDarkBackground =
+    Color(0xFF111318)
+
+val LedgerlyDarkSurface =
+    Color(0xFF20242B)
+
+val LedgerlyDarkText =
+    Color(0xFFF4F6F8)
+
+val LedgerlyExpenseRed =
+    Color(0xFFE5484D)
+
+val LedgerlyIncomeGreen =
+    Color(0xFF2EAD68)
+
+val LedgerlyPink =
+    Color(0xFFEC407A)
+
+val LedgerlyPinkLight =
+    Color(0xFFF8BBD0)
+
+val LedgerlyGreen =
+    Color(0xFF43A047)
+
+val LedgerlyGreenLight =
+    Color(0xFFA5D6A7)
+
+val LedgerlyPurple =
+    Color(0xFF7E57C2)
+
+val LedgerlyPurpleLight =
+    Color(0xFFD1C4E9)
+
+val LedgerlyBlue =
+    Color(0xFF1E88E5)
+
+val LedgerlyBlueLight =
+    Color(0xFF90CAF9)
+
+val LedgerlyOrange =
+    Color(0xFFFB8C00)
+
+val LedgerlyOrangeLight =
+    Color(0xFFFFCC80)

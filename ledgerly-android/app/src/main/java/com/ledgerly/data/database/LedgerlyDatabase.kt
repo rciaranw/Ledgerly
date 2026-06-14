@@ -11,18 +11,23 @@ import androidx.room.RoomDatabase
         SettingsEntity::class,
         RecurringTransactionEntity::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 abstract class LedgerlyDatabase : RoomDatabase() {
 
-    abstract fun transactionDao(): TransactionDao
+    abstract fun transactionDao():
+        TransactionDao
 
-    abstract fun budgetDao(): BudgetDao
+    abstract fun budgetDao():
+        BudgetDao
 
-    abstract fun categoryDao(): CategoryDao
+    abstract fun categoryDao():
+        CategoryDao
 
-    abstract fun settingsDao(): SettingsDao
+    abstract fun settingsDao():
+        SettingsDao
 
-    abstract fun recurringTransactionDao(): RecurringTransactionDao
+    abstract fun recurringTransactionDao():
+        RecurringTransactionDao
 }
