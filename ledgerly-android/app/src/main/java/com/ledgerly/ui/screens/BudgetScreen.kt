@@ -1,6 +1,7 @@
 package com.ledgerly.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -42,8 +43,11 @@ fun BudgetScreen(
     onAddBudget: () -> Unit,
     onEditBudget: (String) -> Unit
 ) {
-    val settings = settingsViewModel.settings
-    val transactions = transactionViewModel.transactions
+    val settings =
+        settingsViewModel.settings
+
+    val transactions =
+        transactionViewModel.transactions
 
     val overallBudget =
         budgetViewModel.overallBudget
@@ -53,18 +57,26 @@ fun BudgetScreen(
 
     val startDate =
         DatePeriodHelper.startDate(
-            anchorDate = periodViewModel.anchorDate,
-            periodType = periodViewModel.periodType,
-            weekStartDay = settings.weekStartDay,
-            monthStartDay = settings.monthStartDay
+            anchorDate =
+                periodViewModel.anchorDate,
+            periodType =
+                periodViewModel.periodType,
+            weekStartDay =
+                settings.weekStartDay,
+            monthStartDay =
+                settings.monthStartDay
         )
 
     val endDate =
         DatePeriodHelper.endDate(
-            anchorDate = periodViewModel.anchorDate,
-            periodType = periodViewModel.periodType,
-            weekStartDay = settings.weekStartDay,
-            monthStartDay = settings.monthStartDay
+            anchorDate =
+                periodViewModel.anchorDate,
+            periodType =
+                periodViewModel.periodType,
+            weekStartDay =
+                settings.weekStartDay,
+            monthStartDay =
+                settings.monthStartDay
         )
 
     LaunchedEffect(
@@ -73,32 +85,46 @@ fun BudgetScreen(
         endDate
     ) {
         budgetViewModel.updateBudgets(
-            transactions = transactions,
-            startDate = startDate,
-            endDate = endDate
+            transactions =
+                transactions,
+            startDate =
+                startDate,
+            endDate =
+                endDate
         )
     }
 
     val totalBudgetLimit =
-        overallBudget?.limit ?: 0.0
+        overallBudget?.limit
+            ?: 0.0
 
     val totalBudgetSpent =
-        overallBudget?.spent ?: 0.0
+        overallBudget?.spent
+            ?: 0.0
 
     val totalBudgetRemaining =
-        overallBudget?.remaining ?: 0.0
+        overallBudget?.remaining
+            ?: 0.0
 
     val budgetProgress =
         if (totalBudgetLimit <= 0.0) {
             0f
         } else {
-            (totalBudgetSpent / totalBudgetLimit)
+            (
+                totalBudgetSpent /
+                    totalBudgetLimit
+                )
                 .toFloat()
-                .coerceIn(0f, 1f)
+                .coerceIn(
+                    0f,
+                    1f
+                )
         }
 
     val budgetCards =
-        listOfNotNull(overallBudget) + categoryBudgets
+        listOfNotNull(
+            overallBudget
+        ) + categoryBudgets
 
     LazyColumn(
         modifier = Modifier
@@ -111,8 +137,11 @@ fun BudgetScreen(
             Text(
                 text = "Budget",
                 style =
-                    MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold
+                    MaterialTheme
+                        .typography
+                        .headlineMedium,
+                fontWeight =
+                    FontWeight.Bold
             )
         }
 
@@ -127,16 +156,20 @@ fun BudgetScreen(
                 monthStartDay =
                     settings.monthStartDay,
                 onPrevious = {
-                    periodViewModel.previousPeriod()
+                    periodViewModel
+                        .previousPeriod()
                 },
                 onNext = {
-                    periodViewModel.nextPeriod()
+                    periodViewModel
+                        .nextPeriod()
                 },
                 onToday = {
-                    periodViewModel.resetToToday()
+                    periodViewModel
+                        .resetToToday()
                 },
                 onPeriodTypeChanged = { type ->
-                    periodViewModel.updatePeriodType(type)
+                    periodViewModel
+                        .updatePeriodType(type)
                 }
             )
         }
@@ -152,8 +185,10 @@ fun BudgetScreen(
                     title = "Budgeted",
                     value =
                         CurrencyFormatter.format(
-                            amount = totalBudgetLimit,
-                            currencyCode = settings.currencyCode
+                            amount =
+                                totalBudgetLimit,
+                            currencyCode =
+                                settings.currencyCode
                         ),
                     modifier =
                         Modifier.weight(1f)
@@ -163,13 +198,18 @@ fun BudgetScreen(
                     title = "Remaining",
                     value =
                         CurrencyFormatter.format(
-                            amount = totalBudgetRemaining,
-                            currencyCode = settings.currencyCode
+                            amount =
+                                totalBudgetRemaining,
+                            currencyCode =
+                                settings.currencyCode
                         ),
                     modifier =
                         Modifier.weight(1f),
                     valueColour =
-                        if (totalBudgetRemaining < 0.0) {
+                        if (
+                            totalBudgetRemaining <
+                            0.0
+                        ) {
                             LedgerlyExpenseRed
                         } else {
                             LedgerlyIncomeGreen
@@ -187,41 +227,56 @@ fun BudgetScreen(
                 colors =
                     CardDefaults.cardColors(
                         containerColor =
-                            MaterialTheme.colorScheme.surfaceVariant
+                            MaterialTheme
+                                .colorScheme
+                                .surfaceVariant
                     )
             ) {
                 Column(
                     modifier =
                         Modifier.padding(16.dp),
                     verticalArrangement =
-                        Arrangement.spacedBy(10.dp)
+                        Arrangement.spacedBy(
+                            10.dp
+                        )
                 ) {
                     Text(
-                        text = "Overall Budget Use",
+                        text =
+                            "Overall Budget Use",
                         style =
-                            MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                            MaterialTheme
+                                .typography
+                                .titleMedium,
+                        fontWeight =
+                            FontWeight.Bold
                     )
 
                     if (overallBudget == null) {
                         EmptyStateCard(
                             emoji = "🎯",
-                            title = "No budget set",
-                            message = "Create a budget to start tracking your spending."
+                            title =
+                                "No budget set",
+                            message =
+                                "Create a budget to start tracking your spending."
                         )
                     } else {
                         Text(
-                            text = "${
-                                CurrencyFormatter.format(
-                                    amount = totalBudgetSpent,
-                                    currencyCode = settings.currencyCode
-                                )
-                            } spent of ${
-                                CurrencyFormatter.format(
-                                    amount = totalBudgetLimit,
-                                    currencyCode = settings.currencyCode
-                                )
-                            }"
+                            text =
+                                "${
+                                    CurrencyFormatter.format(
+                                        amount =
+                                            totalBudgetSpent,
+                                        currencyCode =
+                                            settings.currencyCode
+                                    )
+                                } spent of ${
+                                    CurrencyFormatter.format(
+                                        amount =
+                                            totalBudgetLimit,
+                                        currencyCode =
+                                            settings.currencyCode
+                                    )
+                                }"
                         )
 
                         LinearProgressIndicator(
@@ -233,19 +288,26 @@ fun BudgetScreen(
                         )
 
                         Text(
-                            text = "Remaining: ${
-                                CurrencyFormatter.format(
-                                    amount = totalBudgetRemaining,
-                                    currencyCode = settings.currencyCode
-                                )
-                            }",
+                            text =
+                                "Remaining: ${
+                                    CurrencyFormatter.format(
+                                        amount =
+                                            totalBudgetRemaining,
+                                        currencyCode =
+                                            settings.currencyCode
+                                    )
+                                }",
                             color =
-                                if (totalBudgetRemaining < 0.0) {
+                                if (
+                                    totalBudgetRemaining <
+                                    0.0
+                                ) {
                                     LedgerlyExpenseRed
                                 } else {
                                     LedgerlyIncomeGreen
                                 },
-                            fontWeight = FontWeight.Bold
+                            fontWeight =
+                                FontWeight.Bold
                         )
                     }
                 }
@@ -253,24 +315,37 @@ fun BudgetScreen(
         }
 
         item {
-            LedgerlyPrimaryButton(
-                text = if (overallBudget == null) {
-                    "Add Budget"
-                } else {
-                    "Edit Budget Plan"
-                },
-                onClick = onAddBudget,
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-            )
+            Box(
+                modifier =
+                    Modifier.fillMaxWidth(),
+                contentAlignment =
+                    Alignment.Center
+            ) {
+                LedgerlyPrimaryButton(
+                    text =
+                        if (
+                            overallBudget == null
+                        ) {
+                            "Add Budget"
+                        } else {
+                            "Edit Budget Plan"
+                        },
+                    onClick =
+                        onAddBudget
+                )
+            }
         }
 
         item {
             Text(
-                text = "Category Allocations",
+                text =
+                    "Category Allocations",
                 style =
-                    MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
+                    MaterialTheme
+                        .typography
+                        .titleLarge,
+                fontWeight =
+                    FontWeight.Bold
             )
         }
 
@@ -278,12 +353,20 @@ fun BudgetScreen(
             item {
                 EmptyStateCard(
                     emoji = "📂",
-                    title = "No category allocations",
-                    message = "Break your budget down by category when you want more control."
+                    title =
+                        "No category allocations",
+                    message =
+                        "Break your budget down by category when you want more control."
                 )
             }
         } else {
-            items(categoryBudgets) { budget ->
+            items(
+                items =
+                    categoryBudgets,
+                key = { budget ->
+                    budget.id
+                }
+            ) { budget ->
                 BudgetHealthCard(
                     category =
                         budget.category.name,
@@ -295,10 +378,14 @@ fun BudgetScreen(
 
         item {
             Text(
-                text = "Budget Progress",
+                text =
+                    "Budget Progress",
                 style =
-                    MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
+                    MaterialTheme
+                        .typography
+                        .titleLarge,
+                fontWeight =
+                    FontWeight.Bold
             )
         }
 
@@ -306,15 +393,25 @@ fun BudgetScreen(
             item {
                 EmptyStateCard(
                     emoji = "🎯",
-                    title = "No budget configured",
-                    message = "Create a budget plan to track spending for this period."
+                    title =
+                        "No budget configured",
+                    message =
+                        "Create a budget plan to track spending for this period."
                 )
             }
         } else {
-            items(budgetCards) { budget ->
+            items(
+                items =
+                    budgetCards,
+                key = { budget ->
+                    budget.id
+                }
+            ) { budget ->
                 BudgetCard(
-                    budget = budget,
-                    currencyCode = settings.currencyCode,
+                    budget =
+                        budget,
+                    currencyCode =
+                        settings.currencyCode,
                     onClick = {
                         onEditBudget(
                             budget.id
@@ -332,7 +429,10 @@ private fun BudgetHealthCard(
     progress: Double
 ) {
     val percentage =
-        (progress * 100)
+        (
+            progress *
+                100
+            )
             .toInt()
             .coerceAtLeast(0)
 
@@ -354,54 +454,74 @@ private fun BudgetHealthCard(
                 LedgerlyExpenseRed
 
             progress >= 0.8 ->
-                MaterialTheme.colorScheme.primary
+                MaterialTheme
+                    .colorScheme
+                    .primary
 
             else ->
                 LedgerlyIncomeGreen
         }
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(
-            containerColor =
-                MaterialTheme.colorScheme.surfaceVariant
-        )
+        modifier =
+            Modifier.fillMaxWidth(),
+        shape =
+            RoundedCornerShape(18.dp),
+        colors =
+            CardDefaults.cardColors(
+                containerColor =
+                    MaterialTheme
+                        .colorScheme
+                        .surfaceVariant
+            )
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier =
+                Modifier.padding(16.dp),
             verticalArrangement =
                 Arrangement.spacedBy(8.dp)
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier =
+                    Modifier.fillMaxWidth(),
                 horizontalArrangement =
                     Arrangement.SpaceBetween,
                 verticalAlignment =
                     Alignment.CenterVertically
             ) {
                 Text(
-                    text = category,
-                    fontWeight = FontWeight.Bold
+                    text =
+                        category,
+                    fontWeight =
+                        FontWeight.Bold
                 )
 
                 Text(
-                    text = status,
-                    color = statusColour,
-                    fontWeight = FontWeight.Bold
+                    text =
+                        status,
+                    color =
+                        statusColour,
+                    fontWeight =
+                        FontWeight.Bold
                 )
             }
 
             LinearProgressIndicator(
                 progress = {
-                    progress.toFloat()
-                        .coerceIn(0f, 1f)
+                    progress
+                        .toFloat()
+                        .coerceIn(
+                            0f,
+                            1f
+                        )
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier =
+                    Modifier.fillMaxWidth()
             )
 
             Text(
-                text = "$percentage% used"
+                text =
+                    "$percentage% used"
             )
         }
     }
@@ -412,36 +532,55 @@ private fun BudgetMiniCard(
     title: String,
     value: String,
     modifier: Modifier = Modifier,
-    valueColour: androidx.compose.ui.graphics.Color =
-        MaterialTheme.colorScheme.onSurface
+    valueColour:
+        androidx.compose.ui.graphics.Color =
+        MaterialTheme
+            .colorScheme
+            .onSurface
 ) {
     Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(
-            containerColor =
-                MaterialTheme.colorScheme.surfaceVariant
-        ),
+        modifier =
+            modifier,
+        shape =
+            RoundedCornerShape(18.dp),
+        colors =
+            CardDefaults.cardColors(
+                containerColor =
+                    MaterialTheme
+                        .colorScheme
+                        .surfaceVariant
+            ),
         elevation =
-            CardDefaults.cardElevation(defaultElevation = 2.dp)
+            CardDefaults.cardElevation(
+                defaultElevation = 2.dp
+            )
     ) {
         Column(
-            modifier = Modifier.padding(14.dp),
+            modifier =
+                Modifier.padding(14.dp),
             verticalArrangement =
                 Arrangement.spacedBy(6.dp)
         ) {
             Text(
-                text = title,
+                text =
+                    title,
                 style =
-                    MaterialTheme.typography.bodyMedium
+                    MaterialTheme
+                        .typography
+                        .bodyMedium
             )
 
             Text(
-                text = value,
+                text =
+                    value,
                 style =
-                    MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = valueColour
+                    MaterialTheme
+                        .typography
+                        .titleLarge,
+                fontWeight =
+                    FontWeight.Bold,
+                color =
+                    valueColour
             )
         }
     }

@@ -2,7 +2,6 @@ package com.ledgerly.ui.components
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -36,16 +35,17 @@ data class ChartDataItem(
     val amount: Double
 )
 
-private val chartColours = listOf(
-    Color(0xFF00B8A9),
-    Color(0xFF7E57C2),
-    Color(0xFFFFA726),
-    Color(0xFF42A5F5),
-    Color(0xFFEC407A),
-    Color(0xFF66BB6A),
-    Color(0xFFAB47BC),
-    Color(0xFFFF7043)
-)
+private val chartColours =
+    listOf(
+        Color(0xFF00B8A9),
+        Color(0xFF7E57C2),
+        Color(0xFFFFA726),
+        Color(0xFF42A5F5),
+        Color(0xFFEC407A),
+        Color(0xFF66BB6A),
+        Color(0xFFAB47BC),
+        Color(0xFFFF7043)
+    )
 
 @Composable
 fun IncomeExpenseChartCard(
@@ -54,7 +54,10 @@ fun IncomeExpenseChartCard(
     currencyCode: String
 ) {
     val maximumValue =
-        max(income, expenses)
+        max(
+            income,
+            expenses
+        )
             .coerceAtLeast(1.0)
 
     Card(
@@ -65,7 +68,9 @@ fun IncomeExpenseChartCard(
         colors =
             CardDefaults.cardColors(
                 containerColor =
-                    MaterialTheme.colorScheme.surfaceVariant
+                    MaterialTheme
+                        .colorScheme
+                        .surfaceVariant
             )
     ) {
         Column(
@@ -75,9 +80,12 @@ fun IncomeExpenseChartCard(
                 Arrangement.spacedBy(14.dp)
         ) {
             Text(
-                text = "Income vs Expenses",
+                text =
+                    "Income vs Expenses",
                 style =
-                    MaterialTheme.typography.titleMedium,
+                    MaterialTheme
+                        .typography
+                        .titleMedium,
                 fontWeight =
                     FontWeight.Bold
             )
@@ -85,17 +93,23 @@ fun IncomeExpenseChartCard(
             ComparisonBar(
                 label = "Income",
                 amount = income,
-                maximumValue = maximumValue,
-                colour = LedgerlyIncomeGreen,
-                currencyCode = currencyCode
+                maximumValue =
+                    maximumValue,
+                colour =
+                    LedgerlyIncomeGreen,
+                currencyCode =
+                    currencyCode
             )
 
             ComparisonBar(
                 label = "Expenses",
                 amount = expenses,
-                maximumValue = maximumValue,
-                colour = LedgerlyExpenseRed,
-                currencyCode = currencyCode
+                maximumValue =
+                    maximumValue,
+                colour =
+                    LedgerlyExpenseRed,
+                currencyCode =
+                    currencyCode
             )
         }
     }
@@ -110,9 +124,15 @@ private fun ComparisonBar(
     currencyCode: String
 ) {
     val progress =
-        (amount / maximumValue)
+        (
+            amount /
+                maximumValue
+            )
             .toFloat()
-            .coerceIn(0f, 1f)
+            .coerceIn(
+                0f,
+                1f
+            )
 
     Column(
         verticalArrangement =
@@ -125,7 +145,8 @@ private fun ComparisonBar(
                 Arrangement.SpaceBetween
         ) {
             Text(
-                text = label,
+                text =
+                    label,
                 fontWeight =
                     FontWeight.SemiBold
             )
@@ -133,8 +154,10 @@ private fun ComparisonBar(
             Text(
                 text =
                     CurrencyFormatter.format(
-                        amount = amount,
-                        currencyCode = currencyCode
+                        amount =
+                            amount,
+                        currencyCode =
+                            currencyCode
                     ),
                 fontWeight =
                     FontWeight.Bold
@@ -148,27 +171,37 @@ private fun ComparisonBar(
         ) {
             drawRoundRect(
                 color =
-                    colour.copy(alpha = 0.18f),
-                size = size,
+                    colour.copy(
+                        alpha = 0.18f
+                    ),
+                size =
+                    size,
                 cornerRadius =
                     CornerRadius(
-                        x = size.height / 2f,
-                        y = size.height / 2f
+                        x =
+                            size.height / 2f,
+                        y =
+                            size.height / 2f
                     )
             )
 
             drawRoundRect(
-                color = colour,
-                size = Size(
-                    width =
-                        size.width * progress,
-                    height =
-                        size.height
-                ),
+                color =
+                    colour,
+                size =
+                    Size(
+                        width =
+                            size.width *
+                                progress,
+                        height =
+                            size.height
+                    ),
                 cornerRadius =
                     CornerRadius(
-                        x = size.height / 2f,
-                        y = size.height / 2f
+                        x =
+                            size.height / 2f,
+                        y =
+                            size.height / 2f
                     )
             )
         }
@@ -193,7 +226,9 @@ fun SpendingPieChartCard(
         colors =
             CardDefaults.cardColors(
                 containerColor =
-                    MaterialTheme.colorScheme.surfaceVariant
+                    MaterialTheme
+                        .colorScheme
+                        .surfaceVariant
             )
     ) {
         Column(
@@ -203,9 +238,12 @@ fun SpendingPieChartCard(
                 Arrangement.spacedBy(14.dp)
         ) {
             Text(
-                text = "Spending Split",
+                text =
+                    "Spending Split",
                 style =
-                    MaterialTheme.typography.titleMedium,
+                    MaterialTheme
+                        .typography
+                        .titleMedium,
                 fontWeight =
                     FontWeight.Bold
             )
@@ -214,7 +252,9 @@ fun SpendingPieChartCard(
                 text =
                     "How your expenses are divided by category.",
                 style =
-                    MaterialTheme.typography.bodyMedium
+                    MaterialTheme
+                        .typography
+                        .bodyMedium
             )
 
             if (
@@ -230,7 +270,9 @@ fun SpendingPieChartCard(
                     modifier =
                         Modifier.fillMaxWidth(),
                     horizontalArrangement =
-                        Arrangement.spacedBy(18.dp),
+                        Arrangement.spacedBy(
+                            18.dp
+                        ),
                     verticalAlignment =
                         Alignment.CenterVertically
                 ) {
@@ -241,13 +283,17 @@ fun SpendingPieChartCard(
                         var startAngle =
                             -90f
 
-                        data.forEachIndexed { index, item ->
+                        data.forEachIndexed {
+                                index,
+                                item ->
+
                             val sweepAngle =
                                 (
                                     item.amount /
                                         total *
                                         360.0
-                                    ).toFloat()
+                                    )
+                                    .toFloat()
 
                             drawArc(
                                 color =
@@ -300,7 +346,10 @@ fun SpendingPieChartCard(
                         verticalArrangement =
                             Arrangement.spacedBy(8.dp)
                     ) {
-                        data.forEachIndexed { index, item ->
+                        data.forEachIndexed {
+                                index,
+                                item ->
+
                             val percentage =
                                 (
                                     item.amount /
@@ -336,7 +385,8 @@ fun CategoryBreakdownChartCard(
     val maximumValue =
         data.maxOfOrNull { item ->
             item.amount
-        }?.coerceAtLeast(1.0)
+        }
+            ?.coerceAtLeast(1.0)
             ?: 1.0
 
     Card(
@@ -347,7 +397,9 @@ fun CategoryBreakdownChartCard(
         colors =
             CardDefaults.cardColors(
                 containerColor =
-                    MaterialTheme.colorScheme.surfaceVariant
+                    MaterialTheme
+                        .colorScheme
+                        .surfaceVariant
             )
     ) {
         Column(
@@ -360,7 +412,9 @@ fun CategoryBreakdownChartCard(
                 text =
                     "Category Breakdown",
                 style =
-                    MaterialTheme.typography.titleMedium,
+                    MaterialTheme
+                        .typography
+                        .titleMedium,
                 fontWeight =
                     FontWeight.Bold
             )
@@ -369,7 +423,9 @@ fun CategoryBreakdownChartCard(
                 text =
                     "Your highest spending categories for this period.",
                 style =
-                    MaterialTheme.typography.bodyMedium
+                    MaterialTheme
+                        .typography
+                        .bodyMedium
             )
 
             if (data.isEmpty()) {
@@ -378,9 +434,13 @@ fun CategoryBreakdownChartCard(
                         "No category spending available."
                 )
             } else {
-                data.forEachIndexed { index, item ->
+                data.forEachIndexed {
+                        index,
+                        item ->
+
                     CategoryBreakdownRow(
-                        item = item,
+                        item =
+                            item,
                         colour =
                             chartColours[
                                 index %
@@ -405,9 +465,15 @@ private fun CategoryBreakdownRow(
     currencyCode: String
 ) {
     val progress =
-        (item.amount / maximumValue)
+        (
+            item.amount /
+                maximumValue
+            )
             .toFloat()
-            .coerceIn(0f, 1f)
+            .coerceIn(
+                0f,
+                1f
+            )
 
     Column(
         verticalArrangement =
@@ -432,12 +498,14 @@ private fun CategoryBreakdownRow(
                         Modifier.size(10.dp)
                 ) {
                     drawCircle(
-                        color = colour
+                        color =
+                            colour
                     )
                 }
 
                 Text(
-                    text = item.label,
+                    text =
+                        item.label,
                     fontWeight =
                         FontWeight.SemiBold
                 )
@@ -463,27 +531,37 @@ private fun CategoryBreakdownRow(
         ) {
             drawRoundRect(
                 color =
-                    colour.copy(alpha = 0.18f),
-                size = size,
+                    colour.copy(
+                        alpha = 0.18f
+                    ),
+                size =
+                    size,
                 cornerRadius =
                     CornerRadius(
-                        x = size.height / 2f,
-                        y = size.height / 2f
+                        x =
+                            size.height / 2f,
+                        y =
+                            size.height / 2f
                     )
             )
 
             drawRoundRect(
-                color = colour,
-                size = Size(
-                    width =
-                        size.width * progress,
-                    height =
-                        size.height
-                ),
+                color =
+                    colour,
+                size =
+                    Size(
+                        width =
+                            size.width *
+                                progress,
+                        height =
+                            size.height
+                    ),
                 cornerRadius =
                     CornerRadius(
-                        x = size.height / 2f,
-                        y = size.height / 2f
+                        x =
+                            size.height / 2f,
+                        y =
+                            size.height / 2f
                     )
             )
         }
@@ -498,8 +576,14 @@ fun MonthlyTrendChartCard(
     val maximumValue =
         data.maxOfOrNull { item ->
             item.amount
-        }?.coerceAtLeast(1.0)
+        }
+            ?.coerceAtLeast(1.0)
             ?: 1.0
+
+    val primaryColour =
+        MaterialTheme
+            .colorScheme
+            .primary
 
     Card(
         modifier =
@@ -509,7 +593,9 @@ fun MonthlyTrendChartCard(
         colors =
             CardDefaults.cardColors(
                 containerColor =
-                    MaterialTheme.colorScheme.surfaceVariant
+                    MaterialTheme
+                        .colorScheme
+                        .surfaceVariant
             )
     ) {
         Column(
@@ -522,30 +608,24 @@ fun MonthlyTrendChartCard(
                 text =
                     "Monthly Spending Trend",
                 style =
-                    MaterialTheme.typography.titleMedium,
+                    MaterialTheme
+                        .typography
+                        .titleMedium,
                 fontWeight =
                     FontWeight.Bold
-            )
-
-            Text(
-                text =
-                    "A comparison of your spending over the last six months.",
-                style =
-                    MaterialTheme.typography.bodyMedium
             )
 
             if (data.isEmpty()) {
                 Text(
                     text =
-                        "No trend data available."
+                        "No spending trend available."
                 )
             } else {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(190.dp),
+                    modifier =
+                        Modifier.fillMaxWidth(),
                     horizontalArrangement =
-                        Arrangement.spacedBy(10.dp),
+                        Arrangement.spacedBy(8.dp),
                     verticalAlignment =
                         Alignment.Bottom
                 ) {
@@ -565,9 +645,7 @@ fun MonthlyTrendChartCard(
                             modifier =
                                 Modifier.weight(1f),
                             horizontalAlignment =
-                                Alignment.CenterHorizontally,
-                            verticalArrangement =
-                                Arrangement.Bottom
+                                Alignment.CenterHorizontally
                         ) {
                             Text(
                                 text =
@@ -605,10 +683,9 @@ fun MonthlyTrendChartCard(
                             ) {
                                 drawRoundRect(
                                     color =
-                                        MaterialTheme
-                                            .colorScheme
-                                            .primary,
-                                    size = size,
+                                        primaryColour,
+                                    size =
+                                        size,
                                     cornerRadius =
                                         CornerRadius(
                                             x =
@@ -653,38 +730,40 @@ private fun ChartLegendRow(
         modifier =
             Modifier.fillMaxWidth(),
         horizontalArrangement =
-            Arrangement.SpaceBetween,
+            Arrangement.spacedBy(8.dp),
         verticalAlignment =
             Alignment.CenterVertically
     ) {
-        Row(
-            horizontalArrangement =
-                Arrangement.spacedBy(8.dp),
-            verticalAlignment =
-                Alignment.CenterVertically
+        Canvas(
+            modifier =
+                Modifier.size(10.dp)
         ) {
-            Canvas(
-                modifier =
-                    Modifier.size(10.dp)
-            ) {
-                drawCircle(
-                    color = colour
-                )
-            }
-
-            Text(
-                text = label,
-                style =
-                    MaterialTheme.typography.bodySmall
+            drawCircle(
+                color =
+                    colour
             )
         }
 
         Text(
-            text = value,
+            text =
+                label,
+            modifier =
+                Modifier.weight(1f),
             style =
-                MaterialTheme.typography.bodySmall,
+                MaterialTheme
+                    .typography
+                    .bodySmall
+        )
+
+        Text(
+            text =
+                value,
             fontWeight =
-                FontWeight.Bold
+                FontWeight.Bold,
+            style =
+                MaterialTheme
+                    .typography
+                    .bodySmall
         )
     }
 }

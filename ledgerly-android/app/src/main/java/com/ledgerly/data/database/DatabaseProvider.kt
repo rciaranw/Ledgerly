@@ -12,17 +12,21 @@ object DatabaseProvider {
     fun getDatabase(
         context: Context
     ): LedgerlyDatabase {
-        return database
-            ?: synchronized(this) {
-                val existingDatabase =
-                    database
+        val existingDatabase =
+            database
 
-                if (existingDatabase != null) {
-                    return@synchronized
-                        existingDatabase
-                }
+        if (existingDatabase != null) {
+            return existingDatabase
+        }
 
-                val instance =
+        return synchronized(this) {
+            val databaseInsideLock =
+                database
+
+            if (databaseInsideLock != null) {
+                databaseInsideLock
+            } else {
+                val newDatabase =
                     Room.databaseBuilder(
                         context.applicationContext,
                         LedgerlyDatabase::class.java,
@@ -35,9 +39,10 @@ object DatabaseProvider {
                         .build()
 
                 database =
-                    instance
+                    newDatabase
 
-                instance
+                newDatabase
             }
+        }
     }
 }

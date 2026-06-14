@@ -2,8 +2,7 @@ package com.ledgerly.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 
 private val DefaultTypography =
@@ -106,43 +105,31 @@ fun ledgerlyTypography(
 }
 
 val Typography =
-    Typography(
-        bodyLarge =
-            TextStyle(
-                fontFamily =
-                    FontFamily.Default,
-                fontWeight =
-                    FontWeight.Normal,
-                fontSize =
-                    16.sp,
-                lineHeight =
-                    24.sp,
-                letterSpacing =
-                    0.5.sp
-            )
-    )
+    DefaultTypography
 
 private fun TextStyle.scaled(
     scale: Float
 ): TextStyle {
-    val scaledFontSize =
-        if (fontSize.isSpecified) {
-            fontSize * scale
-        } else {
-            fontSize
-        }
-
-    val scaledLineHeight =
-        if (lineHeight.isSpecified) {
-            lineHeight * scale
-        } else {
-            lineHeight
-        }
-
     return copy(
         fontSize =
-            scaledFontSize,
+            fontSize.scaledOrUnspecified(
+                scale
+            ),
         lineHeight =
-            scaledLineHeight
+            lineHeight.scaledOrUnspecified(
+                scale
+            )
     )
+}
+
+private fun TextUnit.scaledOrUnspecified(
+    scale: Float
+): TextUnit {
+    return if (
+        this == TextUnit.Unspecified
+    ) {
+        TextUnit.Unspecified
+    } else {
+        value.times(scale).sp
+    }
 }
