@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.ledgerly.viewmodel.SettingsViewModel
 
 private data class DateFormatOption(
     val label: String,
@@ -32,10 +33,12 @@ private data class DateFormatOption(
 
 @Composable
 fun DateFormatSettingsScreen(
-    selectedFormat: String,
-    onFormatSelected: (String) -> Unit,
+    settingsViewModel: SettingsViewModel,
     onBack: () -> Unit
 ) {
+    val settings =
+        settingsViewModel.settings
+
     val formats =
         listOf(
             DateFormatOption(
@@ -107,16 +110,17 @@ fun DateFormatSettingsScreen(
 
         formats.forEach { format ->
             val selected =
-                selectedFormat ==
+                settings.dateFormat ==
                     format.label
 
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable {
-                        onFormatSelected(
-                            format.label
-                        )
+                        settingsViewModel
+                            .setDateFormat(
+                                format.label
+                            )
                     },
                 shape =
                     RoundedCornerShape(18.dp),

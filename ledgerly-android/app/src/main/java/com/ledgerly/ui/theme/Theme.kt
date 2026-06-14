@@ -313,6 +313,7 @@ private val LedgerlyOrangeColorScheme =
 @Composable
 fun LedgerlyTheme(
     themeName: String = "Default",
+    textSize: String = "Standard",
     content: @Composable () -> Unit
 ) {
     val colourScheme =
@@ -351,7 +352,9 @@ fun LedgerlyTheme(
         colorScheme =
             colourScheme,
         typography =
-            Typography,
+            ledgerlyTypography(
+                textSize
+            ),
         content =
             content
     )

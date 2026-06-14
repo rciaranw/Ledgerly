@@ -21,10 +21,14 @@ import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() {
 
-    override fun onCreate(savedInstanceState: Bundle?) {
+    override fun onCreate(
+        savedInstanceState: Bundle?
+    ) {
         installSplashScreen()
 
-        super.onCreate(savedInstanceState)
+        super.onCreate(
+            savedInstanceState
+        )
 
         enableEdgeToEdge()
 
@@ -32,17 +36,25 @@ class MainActivity : ComponentActivity() {
             val application =
                 applicationContext as Application
 
-            val settingsViewModel: SettingsViewModel =
+            val settingsViewModel:
+                SettingsViewModel =
                 viewModel(
-                    factory = ViewModelProvider
-                        .AndroidViewModelFactory
-                        .getInstance(application)
+                    factory =
+                        ViewModelProvider
+                            .AndroidViewModelFactory
+                            .getInstance(
+                                application
+                            )
                 )
 
-            val settings = settingsViewModel.settings
+            val settings =
+                settingsViewModel.settings
 
             LedgerlyTheme(
-                themeName = settings.theme
+                themeName =
+                    settings.theme,
+                textSize =
+                    settings.textSize
             ) {
                 var showSplash by remember {
                     mutableStateOf(true)
@@ -56,7 +68,10 @@ class MainActivity : ComponentActivity() {
                 if (showSplash) {
                     BrandedSplashScreen()
                 } else {
-                    LedgerlyNavigation()
+                    LedgerlyNavigation(
+                        settingsViewModel =
+                            settingsViewModel
+                    )
                 }
             }
         }
