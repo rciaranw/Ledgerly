@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
@@ -20,6 +22,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -149,9 +152,7 @@ fun AddRecurringTransactionScreen(
             )
             .padding(16.dp),
         verticalArrangement =
-            Arrangement.spacedBy(
-                16.dp
-            )
+            Arrangement.spacedBy(16.dp)
     ) {
         Text(
             text =
@@ -168,9 +169,7 @@ fun AddRecurringTransactionScreen(
             modifier =
                 Modifier.fillMaxWidth(),
             shape =
-                RoundedCornerShape(
-                    20.dp
-                ),
+                RoundedCornerShape(20.dp),
             colors =
                 CardDefaults.cardColors(
                     containerColor =
@@ -181,13 +180,9 @@ fun AddRecurringTransactionScreen(
         ) {
             Column(
                 modifier =
-                    Modifier.padding(
-                        16.dp
-                    ),
+                    Modifier.padding(16.dp),
                 verticalArrangement =
-                    Arrangement.spacedBy(
-                        16.dp
-                    )
+                    Arrangement.spacedBy(16.dp)
             ) {
                 IncomeExpenseToggle(
                     isIncome =
@@ -372,7 +367,7 @@ fun AddRecurringTransactionScreen(
                     }
                 }
 
-                OutlinedTextField(
+                DateSelectionField(
                     value =
                         DateHelper.formatDate(
                             date =
@@ -380,24 +375,15 @@ fun AddRecurringTransactionScreen(
                             format =
                                 settings.dateFormat
                         ),
-                    onValueChange = {},
-                    readOnly =
-                        true,
-                    label = {
-                        Text(
-                            text =
-                                "Start Date"
-                        )
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            showStartDatePicker =
-                                true
-                        }
+                    label =
+                        "Start Date",
+                    onClick = {
+                        showStartDatePicker =
+                            true
+                    }
                 )
 
-                OutlinedTextField(
+                DateSelectionField(
                     value =
                         selectedEndDate
                             ?.let { endDate ->
@@ -409,21 +395,12 @@ fun AddRecurringTransactionScreen(
                                 )
                             }
                             ?: "No end date",
-                    onValueChange = {},
-                    readOnly =
-                        true,
-                    label = {
-                        Text(
-                            text =
-                                "End Date"
-                        )
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            showEndDatePicker =
-                                true
-                        }
+                    label =
+                        "End Date",
+                    onClick = {
+                        showEndDatePicker =
+                            true
+                    }
                 )
 
                 if (
@@ -602,6 +579,9 @@ fun AddRecurringTransactionScreen(
                                     selectedEndDate =
                                         null
                                 }
+
+                                validationMessage =
+                                    null
                             }
 
                         showStartDatePicker =
@@ -638,15 +618,19 @@ fun AddRecurringTransactionScreen(
     if (
         showEndDatePicker
     ) {
+        val initialEndDate =
+            selectedEndDate
+                ?: selectedStartDate
+
         val endDatePickerState =
             rememberDatePickerState(
                 initialSelectedDateMillis =
-                    selectedEndDate
-                        ?.atStartOfDay(
+                    initialEndDate
+                        .atStartOfDay(
                             ZoneId.systemDefault()
                         )
-                        ?.toInstant()
-                        ?.toEpochMilli()
+                        .toInstant()
+                        .toEpochMilli()
             )
 
         DatePickerDialog(
@@ -660,11 +644,11 @@ fun AddRecurringTransactionScreen(
                         endDatePickerState
                             .selectedDateMillis
                             ?.let { millis ->
-                                val date =
+                                val selectedDate =
                                     millis.toLocalDate()
 
                                 if (
-                                    date.isBefore(
+                                    selectedDate.isBefore(
                                         selectedStartDate
                                     )
                                 ) {
@@ -672,7 +656,7 @@ fun AddRecurringTransactionScreen(
                                         "End date cannot be before the start date."
                                 } else {
                                     selectedEndDate =
-                                        date
+                                        selectedDate
 
                                     validationMessage =
                                         null
@@ -711,6 +695,68 @@ fun AddRecurringTransactionScreen(
     }
 }
 
+@Composable
+private fun DateSelectionField(
+    value: String,
+    label: String,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable {
+                onClick()
+            }
+    ) {
+        OutlinedTextField(
+            value =
+                value,
+            onValueChange = {},
+            readOnly =
+                true,
+            enabled =
+                false,
+            label = {
+                Text(
+                    text =
+                        label
+                )
+            },
+            trailingIcon = {
+                Icon(
+                    imageVector =
+                        Icons.Filled.CalendarMonth,
+                    contentDescription =
+                        "Choose $label"
+                )
+            },
+            modifier =
+                Modifier.fillMaxWidth(),
+            colors =
+                androidx.compose.material3
+                    .OutlinedTextFieldDefaults
+                    .colors(
+                        disabledTextColor =
+                            MaterialTheme
+                                .colorScheme
+                                .onSurface,
+                        disabledBorderColor =
+                            MaterialTheme
+                                .colorScheme
+                                .outline,
+                        disabledLabelColor =
+                            MaterialTheme
+                                .colorScheme
+                                .onSurfaceVariant,
+                        disabledTrailingIconColor =
+                            MaterialTheme
+                                .colorScheme
+                                .onSurfaceVariant
+                    )
+        )
+    }
+}
+
 private fun Long.toLocalDate():
     LocalDate {
     return Instant
@@ -740,9 +786,7 @@ private fun IncomeExpenseToggle(
             modifier =
                 Modifier.padding(4.dp),
             horizontalArrangement =
-                Arrangement.spacedBy(
-                    4.dp
-                )
+                Arrangement.spacedBy(4.dp)
         ) {
             ToggleOption(
                 text = "Expense",

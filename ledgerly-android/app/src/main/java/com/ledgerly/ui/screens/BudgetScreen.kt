@@ -54,6 +54,14 @@ fun BudgetScreen(
 
     val categoryBudgets =
         budgetViewModel.categoryBudgets
+            .filter { budget ->
+                budget.id !=
+                    BudgetViewModel
+                        .OVERALL_BUDGET_ID
+            }
+            .distinctBy { budget ->
+                budget.id
+            }
 
     val startDate =
         DatePeriodHelper.startDate(
@@ -95,19 +103,33 @@ fun BudgetScreen(
     }
 
     val totalBudgetLimit =
-        overallBudget?.limit
+        overallBudget
+            ?.limit
+            ?.takeIf {
+                it.isFinite()
+            }
             ?: 0.0
 
     val totalBudgetSpent =
-        overallBudget?.spent
+        overallBudget
+            ?.spent
+            ?.takeIf {
+                it.isFinite()
+            }
             ?: 0.0
 
     val totalBudgetRemaining =
-        overallBudget?.remaining
+        overallBudget
+            ?.remaining
+            ?.takeIf {
+                it.isFinite()
+            }
             ?: 0.0
 
     val budgetProgress =
-        if (totalBudgetLimit <= 0.0) {
+        if (
+            totalBudgetLimit <= 0.0
+        ) {
             0f
         } else {
             (
@@ -115,16 +137,15 @@ fun BudgetScreen(
                     totalBudgetLimit
                 )
                 .toFloat()
-                .coerceIn(
+                .takeIf {
+                    it.isFinite()
+                }
+                ?.coerceIn(
                     0f,
                     1f
                 )
+                ?: 0f
         }
-
-    val budgetCards =
-        listOfNotNull(
-            overallBudget
-        ) + categoryBudgets
 
     LazyColumn(
         modifier = Modifier
@@ -135,7 +156,8 @@ fun BudgetScreen(
     ) {
         item {
             Text(
-                text = "Budget",
+                text =
+                    "Budget",
                 style =
                     MaterialTheme
                         .typography
@@ -182,7 +204,8 @@ fun BudgetScreen(
                     Arrangement.spacedBy(12.dp)
             ) {
                 BudgetMiniCard(
-                    title = "Budgeted",
+                    title =
+                        "Budgeted",
                     value =
                         CurrencyFormatter.format(
                             amount =
@@ -195,7 +218,8 @@ fun BudgetScreen(
                 )
 
                 BudgetMiniCard(
-                    title = "Remaining",
+                    title =
+                        "Remaining",
                     value =
                         CurrencyFormatter.format(
                             amount =
@@ -236,9 +260,7 @@ fun BudgetScreen(
                     modifier =
                         Modifier.padding(16.dp),
                     verticalArrangement =
-                        Arrangement.spacedBy(
-                            10.dp
-                        )
+                        Arrangement.spacedBy(10.dp)
                 ) {
                     Text(
                         text =
@@ -251,7 +273,9 @@ fun BudgetScreen(
                             FontWeight.Bold
                     )
 
-                    if (overallBudget == null) {
+                    if (
+                        overallBudget == null
+                    ) {
                         EmptyStateCard(
                             emoji = "🎯",
                             title =
@@ -349,7 +373,9 @@ fun BudgetScreen(
             )
         }
 
-        if (categoryBudgets.isEmpty()) {
+        if (
+            categoryBudgets.isEmpty()
+        ) {
             item {
                 EmptyStateCard(
                     emoji = "📂",
@@ -372,6 +398,10 @@ fun BudgetScreen(
                         budget.category.name,
                     progress =
                         budget.progress
+                            .takeIf {
+                                it.isFinite()
+                            }
+                            ?: 0.0
                 )
             }
         }
@@ -389,22 +419,24 @@ fun BudgetScreen(
             )
         }
 
-        if (budgetCards.isEmpty()) {
+        if (
+            categoryBudgets.isEmpty()
+        ) {
             item {
                 EmptyStateCard(
                     emoji = "🎯",
                     title =
-                        "No budget configured",
+                        "No category budget progress",
                     message =
-                        "Create a budget plan to track spending for this period."
+                        "Category progress will appear after allocations are added."
                 )
             }
         } else {
             items(
                 items =
-                    budgetCards,
+                    categoryBudgets,
                 key = { budget ->
-                    budget.id
+                    "progress_${budget.id}"
                 }
             ) { budget ->
                 BudgetCard(
@@ -428,20 +460,27 @@ private fun BudgetHealthCard(
     category: String,
     progress: Double
 ) {
+    val safeProgress =
+        progress
+            .takeIf {
+                it.isFinite()
+            }
+            ?: 0.0
+
     val percentage =
         (
-            progress *
-                100
+            safeProgress *
+                100.0
             )
             .toInt()
             .coerceAtLeast(0)
 
     val status =
         when {
-            progress >= 1.0 ->
+            safeProgress >= 1.0 ->
                 "Over Budget"
 
-            progress >= 0.8 ->
+            safeProgress >= 0.8 ->
                 "Near Limit"
 
             else ->
@@ -450,10 +489,10 @@ private fun BudgetHealthCard(
 
     val statusColour =
         when {
-            progress >= 1.0 ->
+            safeProgress >= 1.0 ->
                 LedgerlyExpenseRed
 
-            progress >= 0.8 ->
+            safeProgress >= 0.8 ->
                 MaterialTheme
                     .colorScheme
                     .primary
@@ -508,7 +547,7 @@ private fun BudgetHealthCard(
 
             LinearProgressIndicator(
                 progress = {
-                    progress
+                    safeProgress
                         .toFloat()
                         .coerceIn(
                             0f,
